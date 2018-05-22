@@ -70,7 +70,7 @@ The lifecycle of client-side code is quite straight-forward:
 * periodically check if there are any modifications to the document
   
   if they are then push the changes to the server
-* periodically check if there is a newer version of document than client already has
+* periodically check if there is a newer version of document
 
   if it is then fetch it from the server and load into the text area
   
