@@ -22,6 +22,8 @@ In turn, this service is determined to be one more _collaborative-browser-editor
 * [axios](https://github.com/axios/axios)
 
   A library that allows ajax-requests and handling responses.
+ 
+* Bootstrap
   
 ### Back-end
 
@@ -56,7 +58,7 @@ public class Document {
     private LocalDateTime lastModification;
     private String versionLabel;
     
-    // ...
+    // getters & setters
 }
 ```
 
@@ -64,7 +66,7 @@ public class Document {
 
 Client can create a new document or open an existing one. When document is loaded into the text area client is able to edit it as he wants.
 
-The lifecycle of client-side code is quite simple:
+The lifecycle of client-side code is quite straight-forward:
 * periodically check if there are any modifications to the document
   
   if they are then push the changes to the server
