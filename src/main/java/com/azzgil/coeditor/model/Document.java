@@ -1,5 +1,7 @@
 package com.azzgil.coeditor.model;
 
+import java.time.LocalDateTime;
+
 public class Document {
 
     public static final String INITIAL_STATE_LABEL = "INITIAL STATE";
@@ -7,6 +9,7 @@ public class Document {
     private int id;
     private String name;
     private String data;
+    private LocalDateTime lastModification;
     private String versionLabel = INITIAL_STATE_LABEL;
 
     public int getId() {
@@ -31,6 +34,18 @@ public class Document {
 
     public void setData(String data) {
         this.data = data;
+    }
+
+    public static String getInitialStateLabel() {
+        return INITIAL_STATE_LABEL;
+    }
+
+    public LocalDateTime getLastModification() {
+        return lastModification;
+    }
+
+    public void setLastModification(LocalDateTime lastModification) {
+        this.lastModification = lastModification;
     }
 
     public String getVersionLabel() {

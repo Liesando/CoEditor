@@ -11,6 +11,11 @@ public class SqlQueryTemplates {
     public static final String INSERT_DOCUMENT_VERSION_PREPARED = "INSERT INTO "
             + DBTables.DOCUMENT_VERSIONS + " VALUES(?,?,?,?)";
 
+    public static final String SELECT_MAX_DOCUMENT_ID = "SELECT MAX(" + DBColumns.DOCUMENT_ID +
+            ") FROM " + DBTables.DOCUMENTS;
+
+    public static final String SELECT_ALL_DOCUMENTS = "SELECT * FROM " + DBTables.DOCUMENTS;
+
     public static String selectLastVersionOfDocument(int id) {
         return "SELECT dv." + DBColumns.DOCUMENT_ID +
                 ", d." + DBColumns.DOCUMENT_NAME +

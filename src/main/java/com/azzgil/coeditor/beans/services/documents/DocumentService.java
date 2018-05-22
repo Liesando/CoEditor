@@ -3,6 +3,7 @@ package com.azzgil.coeditor.beans.services.documents;
 import com.azzgil.coeditor.model.Document;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public interface DocumentService {
 
@@ -14,9 +15,11 @@ public interface DocumentService {
      * @param document
      * @throws SQLException
      */
-    boolean createDocument(Document document) throws SQLException;
+    boolean createDocument(Document document) throws SQLException, DocumentVersionNotFoundException;
 
-    Document getDocumentById(int id) throws SQLException;
+    Document getDocumentById(int id) throws SQLException, DocumentVersionNotFoundException;
+
+    List<Document> getAllDocuments() throws  SQLException;
 
     /**
      * This method <i>does not</i> actually updates document, but

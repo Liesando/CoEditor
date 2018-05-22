@@ -15,7 +15,7 @@ public class DBServiceH2Impl implements DBService {
 
     @PostConstruct
     @Override
-    public void init() {
+    public void init() throws SQLException {
         try {
             logger.info("started initialization of db");
 
@@ -25,8 +25,6 @@ public class DBServiceH2Impl implements DBService {
             logger.info("initialized successfully");
         } catch (ClassNotFoundException e) {
             logger.error("There's no database driver. Did you forget to add one?");
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 

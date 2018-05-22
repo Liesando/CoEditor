@@ -7,11 +7,10 @@ import com.azzgil.coeditor.utils.logging.ColoredLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DocumentServiceDefaultImpl implements DocumentService {
 
@@ -27,13 +26,32 @@ public class DocumentServiceDefaultImpl implements DocumentService {
     public boolean createDocument(Document document) throws SQLException {
 
         try (PreparedStatement ps = dbService.getConnection()
-                .prepareStatement(SqlQueryTemplates.INSERT_DOCUMENT_PREPARED)) {
-//            ps.setInt(1, document.getId()); - autoincremented
+                .prepareStatement(SqlQueryTemplates.INSERT_DOCUMENT_PREPARED);
+             Statement stm = dbService.getConnection().createStatement()) {
             ps.setString(1, document.getName());
 
             int result = ps.executeUpdate();
 
             logResult(result);
+
+            // if we didn't succeed there's no need to continue
+            if (result != 1) {
+                return false;
+            }
+
+            // we need to extract the id of newly created document
+            // and put it in the document variable.
+            // we can achieve this by selecting the maximal value
+            // of DOCUMENT_ID column, since the last added id is
+            // always maximal
+            ResultSet rs = stm.executeQuery(SqlQueryTemplates.SELECT_MAX_DOCUMENT_ID);
+
+            if (rs.next()) {
+                document.setId(rs.getInt(1));
+            } else {
+                // fatal error, should never happen
+                throw new RuntimeException();
+            }
 
             // create a brand new version of document
             return result == 1 && updateDocument(document);
@@ -55,39 +73,61 @@ public class DocumentServiceDefaultImpl implements DocumentService {
     }
 
     @Override
-    public Document getDocumentById(int id) throws SQLException {
+    public Document getDocumentById(int id) throws SQLException, DocumentVersionNotFoundException {
         try (Statement stm = dbService.getConnection().createStatement()) {
             ResultSet rs = stm.executeQuery(SqlQueryTemplates.selectLastVersionOfDocument(id));
             if (rs.next()) {
                 return parse(rs);
             } else {
-                return null;
+                throw new DocumentVersionNotFoundException();
             }
         }
     }
 
     private Document parse(ResultSet rs) throws SQLException {
-        Document document = new Document();
 
         // 1 - id, 2 - name, 3 - modification time, 4 - data
-        document.setId(rs.getInt(1));
-        document.setName(rs.getString(2));
+        Document document = parseDocumentOnly(rs);
+        document.setLastModification(rs.getTimestamp(3).toLocalDateTime());
         document.setData(getDataFrom(rs.getNClob(4)));
         return document;
     }
 
-    private String getDataFrom(NClob nClob) throws SQLException {
-        String data = nClob.getSubString(1, (int) nClob.length());
-        nClob.free();
+    private Document parseDocumentOnly(ResultSet rs) throws SQLException {
+        Document document = new Document();
+        document.setId(rs.getInt(1));
+        document.setName(rs.getString(2));
+        return document;
+    }
+
+    private String getDataFrom(Clob clob) throws SQLException {
+        String data = clob.getSubString(1, (int) clob.length());
+        clob.free();
         return data;
+    }
+
+    @Override
+    public List<Document> getAllDocuments() throws SQLException {
+        try (Statement stm = dbService.getConnection().createStatement()) {
+
+            ResultSet rs = stm.executeQuery(SqlQueryTemplates.SELECT_ALL_DOCUMENTS);
+            List<Document> documents = new ArrayList<>();
+            while (rs.next()) {
+                documents.add(parseDocumentOnly(rs));
+            }
+
+            return documents;
+        }
     }
 
     @Override
     public boolean updateDocument(Document document) throws SQLException {
         try (PreparedStatement ps = dbService.getConnection()
                 .prepareStatement(SqlQueryTemplates.INSERT_DOCUMENT_VERSION_PREPARED)) {
+
+            document.setLastModification(LocalDateTime.now());
             ps.setInt(1, document.getId());
-            ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+            ps.setTimestamp(2, Timestamp.valueOf(document.getLastModification()));
             Clob clob = makeNClobOf(document.getData());
             ps.setClob(3, clob);
             ps.setString(4, document.getVersionLabel());
@@ -103,6 +143,8 @@ public class DocumentServiceDefaultImpl implements DocumentService {
 
     @Override
     public boolean deleteDocument(Document document) {
+
+        // we don't need this possibility yet
         throw new NotImplementedException();
     }
 }
