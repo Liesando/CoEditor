@@ -17,7 +17,7 @@
 <body>
 <div id="main" class="container-fluid" style="height: 100vh">
 
-    <h1>{{ message }}</h1>
+    <h1>CoEditor</h1>
 
     <div class="row justify-content-center" style="height: 70vh">
 
@@ -52,7 +52,8 @@
 
             </div>
             <template v-if="currentDocument">
-                <textarea class="form-control" style="height: 100%;" v-model="documentData"></textarea>
+                <textarea v-if="commitStatus != CommitStatus.fetching" class="form-control" style="height: 100%;" v-model="documentData"></textarea>
+                <textarea v-else disabled class="form-control" style="height: 100%;" v-model="documentData"></textarea>
 
                 <div class="row justify-content-center">
                     <label class="col-form-label text-muted" v-if="commitStatus == CommitStatus.noData">
@@ -69,6 +70,12 @@
                     </label>
                     <label class="col-form-label text-muted pushed" v-else-if="commitStatus == CommitStatus.pushed">
                         changes saved
+                    </label>
+                    <label class="col-form-label text-muted pushed" v-else-if="commitStatus == CommitStatus.fetching">
+                        fetching...
+                    </label>
+                    <label class="col-form-label text-muted pushed" v-else-if="commitStatus == CommitStatus.fetched">
+                        fetched
                     </label>
                 </div>
             </template>

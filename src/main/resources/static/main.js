@@ -2,7 +2,7 @@
 new Vue({
     el: "#main",
     data: {
-        message: "Hello there, you are about to use CoEditor!",
+        errorMessage: "",
         docs: {},
         documentName: "",
         docNameError: "",
@@ -13,31 +13,61 @@ new Vue({
             justLoaded: 1,
             modified: 2,
             pushing: 3,
-            pushed: 4
+            pushed: 4,
+            fetching: 5,
+            fetched: 6
         },
         commitStatus: 0,
-        lastEdit: null,
-        pushInterval: 3000
+        pushInterval: 3000,
+        fetchInterval: 1000
     },
     computed: {},
     watch: {
         documentData: function () {
-            if(this.commitStatus != this.CommitStatus.justLoaded) {
+            if(this.commitStatus != this.CommitStatus.justLoaded
+                && this.commitStatus != this.CommitStatus.fetching) {
                 this.commitStatus = this.CommitStatus.modified;
             } else {
-                this.commitStatus = this.CommitStatus.pushed;
+                this.commitStatus = this.commitStatus == this.CommitStatus.fetching ?
+                    this.CommitStatus.fetched : this.CommitStatus.pushed;
             }
         }
     },
     methods: {
         pushChanges: function () {
             if (this.currentDocument && this.commitStatus == this.CommitStatus.modified) {
+                console.log("pushing!");
                 this.commitStatus = this.CommitStatus.pushing;
                 this.pushDocument();
             }
         },
+        fetchChanges: function () {
+            if(this.currentDocument) {
+                var vm = this;
+                axios.get('/rest/docs/last/' + this.currentDocument.id)
+                    .then(function (response) {
+                        if(response.data > vm.currentDocument.lastModification) {
+                            console.log("detected new version");
+                            vm.commitStatus = vm.CommitStatus.fetching;
+                            vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.fetching);
+                        }
+                    })
+                    .catch(function (reason) {
+                        vm.showError(reason);
+                    })
+            }
+        },
         showError: function (reason) {
-            this.message = reason.response.data.message;
+            if(reason.response) {
+                this.errorMessage = reason.response.data.message;
+            } else {
+                this.errorMessage = reason.message;
+            }
+
+            alert(this.errorMessage);
+        },
+        closeError: function() {
+            this.errorMessage = "";
         },
         createDocument: function () {
             var vm = this;
@@ -81,7 +111,6 @@ new Vue({
                     vm.commitStatus = commitStatus;
                     vm.currentDocument = response.data;
                     vm.documentData = vm.currentDocument.data;
-                    vm.lastEdit = vm.currentDocument.lastModification;
                 })
                 .catch(function (reason) {
                     vm.showError(reason);
@@ -91,6 +120,11 @@ new Vue({
             if (this.currentDocument !== null) {
                 var vm = this;
                 vm.currentDocument.data = vm.documentData;
+
+                // we don't need to save this with old labels
+                // just leave it empty for now
+                vm.currentDocument.versionLabel = null;
+
                 axios.post('/rest/docs/update', vm.currentDocument)
                     .then(function (response) {
                         vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.pushed);
@@ -104,8 +138,13 @@ new Vue({
     created: function () {
         var vm = this;
         vm.updateDocList();
+
         setInterval(function () {
             vm.pushChanges();
         }, vm.pushInterval);
+
+        setInterval(function () {
+            vm.fetchChanges();
+        }, vm.fetchInterval);
     }
 });

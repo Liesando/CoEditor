@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.websocket.server.PathParam;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,5 +58,13 @@ public class MainRestController {
         if(!documentService.updateDocument(document)) {
             throw new UpdateDocumentUnexpectedException();
         }
+    }
+
+    @GetMapping("/docs/last/{id}")
+    public LocalDateTime getLastVersionOfDocument(
+            @PathVariable(value = "id", required = true) int id)
+            throws SQLException, DocumentVersionNotFoundException {
+        Document document = documentService.getDocumentById(id);
+        return document.getLastModification();
     }
 }
