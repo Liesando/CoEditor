@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import javax.websocket.server.PathParam;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,26 +26,19 @@ public class MainRestController {
     }
 
     @GetMapping("/docs")
-    public List<Document> getAllAvailableDocuments() {
-
-        // here we actually need a better errors handling
-        // like passing them anyhow to client
-        try {
-            return documentService.getAllDocuments();
-        } catch (SQLException e) {
-            return new ArrayList<>();
-        }
+    public List<Document> getAllAvailableDocuments() throws SQLException {
+        return documentService.getAllDocuments();
     }
 
     @PostMapping(path = "/docs/new", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public void createDocument(@RequestBody Document document)
-            throws SQLException, DocumentVersionNotFoundException{
+            throws SQLException, DocumentVersionNotFoundException {
         documentService.createDocument(document);
     }
 
     @GetMapping("/docs/{id}")
-    public Document getLastDocumentVersion(@PathVariable(value = "id", required = true) Integer id)
+    public Document getLastDocumentVersion(@PathVariable(value = "id") Integer id)
             throws SQLException, DocumentVersionNotFoundException {
         return documentService.getDocumentById(id.intValue());
     }
@@ -55,12 +47,12 @@ public class MainRestController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateDocument(@RequestBody Document document)
             throws SQLException, UpdateDocumentUnexpectedException {
-        if(!documentService.updateDocument(document)) {
+        if (!documentService.updateDocument(document)) {
             throw new UpdateDocumentUnexpectedException();
         }
     }
 
-    @GetMapping("/docs/last/{id}")
+    @GetMapping("/docs/{id}/lastupdate")
     public LocalDateTime getLastVersionOfDocument(
             @PathVariable(value = "id", required = true) int id)
             throws SQLException, DocumentVersionNotFoundException {

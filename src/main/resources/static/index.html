@@ -11,8 +11,6 @@
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
-
-    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 <div id="main" class="container-fluid" style="height: 100vh">
@@ -52,35 +50,33 @@
 
             </div>
             <template v-if="currentDocument">
-                <textarea v-if="commitStatus != CommitStatus.fetching" class="form-control" style="height: 100%;" v-model="documentData"></textarea>
+                <textarea v-if="commitStatus != CommitStatus.fetching" class="form-control" style="height: 100%;"
+                          v-model="documentData"></textarea>
                 <textarea v-else disabled class="form-control" style="height: 100%;" v-model="documentData"></textarea>
 
                 <div class="row justify-content-center">
                     <label class="col-form-label text-muted" v-if="commitStatus == CommitStatus.noData">
                         no data
                     </label>
-                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.justLoaded">
-                        just loaded
-                    </label>
-                    <label class="col-form-label text-muted modified" v-else-if="commitStatus == CommitStatus.modified">
+                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.modified">
                         modified, preparing to push...
                     </label>
-                    <label class="col-form-label text-muted pushing" v-else-if="commitStatus == CommitStatus.pushing">
+                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.pushing">
                         pushing...
                     </label>
-                    <label class="col-form-label text-muted pushed" v-else-if="commitStatus == CommitStatus.pushed">
+                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.pushed">
                         changes saved
                     </label>
-                    <label class="col-form-label text-muted pushed" v-else-if="commitStatus == CommitStatus.fetching">
+                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.fetching">
                         fetching...
                     </label>
-                    <label class="col-form-label text-muted pushed" v-else-if="commitStatus == CommitStatus.fetched">
+                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.fetched">
                         fetched
                     </label>
                 </div>
             </template>
             <textarea v-else disabled
-                      class="form-control" style="height: 100%;"></textarea>
+                      class="form-control" style="height: 100%;">select document to edit</textarea>
         </div>
     </div>
 </div>

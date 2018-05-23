@@ -28,10 +28,9 @@ public class DocumentServiceDefaultImpl implements DocumentService {
         try (PreparedStatement ps = dbService.getConnection()
                 .prepareStatement(SqlQueryTemplates.INSERT_DOCUMENT_PREPARED);
              Statement stm = dbService.getConnection().createStatement()) {
+
             ps.setString(1, document.getName());
-
             int result = ps.executeUpdate();
-
             logResult(result);
 
             // if we didn't succeed there's no need to continue
@@ -49,7 +48,9 @@ public class DocumentServiceDefaultImpl implements DocumentService {
             if (rs.next()) {
                 document.setId(rs.getInt(1));
             } else {
-                // fatal error, should never happen
+                // fatal error, can only happen when
+                // there are no rows in the table or some
+                // db error occurred and was not caught by jvm
                 throw new RuntimeException();
             }
 
@@ -66,19 +67,18 @@ public class DocumentServiceDefaultImpl implements DocumentService {
         }
     }
 
-    private Clob makeNClobOf(String data) throws SQLException {
-        Clob result = dbService.getConnection().createClob();
-        result.setString(1, data);
-        return result;
-    }
-
     @Override
     public Document getDocumentById(int id) throws SQLException, DocumentVersionNotFoundException {
         try (Statement stm = dbService.getConnection().createStatement()) {
+
             ResultSet rs = stm.executeQuery(SqlQueryTemplates.selectLastVersionOfDocument(id));
+
             if (rs.next()) {
                 return parse(rs);
             } else {
+
+                // here something went wrong, 'cause there always
+                // must be at least one version of document
                 throw new DocumentVersionNotFoundException();
             }
         }
@@ -112,6 +112,7 @@ public class DocumentServiceDefaultImpl implements DocumentService {
 
             ResultSet rs = stm.executeQuery(SqlQueryTemplates.SELECT_ALL_DOCUMENTS);
             List<Document> documents = new ArrayList<>();
+
             while (rs.next()) {
                 documents.add(parseDocumentOnly(rs));
             }
@@ -128,7 +129,7 @@ public class DocumentServiceDefaultImpl implements DocumentService {
             document.setLastModification(LocalDateTime.now());
             ps.setInt(1, document.getId());
             ps.setTimestamp(2, Timestamp.valueOf(document.getLastModification()));
-            Clob clob = makeNClobOf(document.getData());
+            Clob clob = makeClobOf(document.getData());
             ps.setClob(3, clob);
             ps.setString(4, document.getVersionLabel());
 
@@ -136,9 +137,14 @@ public class DocumentServiceDefaultImpl implements DocumentService {
             clob.free();
 
             logResult(result);
-
             return result == 1;
         }
+    }
+
+    private Clob makeClobOf(String data) throws SQLException {
+        Clob result = dbService.getConnection().createClob();
+        result.setString(1, data);
+        return result;
     }
 
     @Override

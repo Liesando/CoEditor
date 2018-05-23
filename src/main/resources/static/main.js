@@ -37,16 +37,19 @@ new Vue({
         pushChanges: function () {
             if (this.currentDocument && this.commitStatus == this.CommitStatus.modified) {
                 console.log("pushing!");
-                this.commitStatus = this.CommitStatus.pushing;
                 this.pushDocument();
             }
         },
         fetchChanges: function () {
-            if(this.currentDocument) {
+            if(this.currentDocument
+                && this.checkFetchingAvailability()) {
+                console.log("commit status: " + this.commitStatus);
+                console.log("requesting last version");
                 var vm = this;
-                axios.get('/rest/docs/last/' + this.currentDocument.id)
+                axios.get('/rest/docs/' + this.currentDocument.id + "/lastupdate")
                     .then(function (response) {
-                        if(response.data > vm.currentDocument.lastModification) {
+                        if(response.data > vm.currentDocument.lastModification
+                            && vm.checkFetchingAvailability()) {
                             console.log("detected new version");
                             vm.commitStatus = vm.CommitStatus.fetching;
                             vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.fetching);
@@ -56,6 +59,10 @@ new Vue({
                         vm.showError(reason);
                     })
             }
+        },
+        checkFetchingAvailability: function () {
+            return this.commitStatus == this.CommitStatus.pushed
+                || this.commitStatus == this.CommitStatus.fetched;
         },
         showError: function (reason) {
             if(reason.response) {
@@ -101,7 +108,7 @@ new Vue({
         closeDocNameWarning: function () {
             this.docNameError = "";
         },
-        loadDocument: function (id, commitStatus) {
+        loadDocument: function (id, commitStatus, updateVersionOnly) {
             var vm = this;
             axios.get("/rest/docs/" + id)
                 .then(function (response) {
@@ -109,8 +116,12 @@ new Vue({
                         commitStatus = vm.CommitStatus.justLoaded;
                     }
                     vm.commitStatus = commitStatus;
-                    vm.currentDocument = response.data;
-                    vm.documentData = vm.currentDocument.data;
+                    if(updateVersionOnly === true) {
+                        vm.currentDocument.lastModified = response.data.lastModified;
+                    } else {
+                        vm.currentDocument = response.data;
+                        vm.documentData = vm.currentDocument.data;
+                    }
                 })
                 .catch(function (reason) {
                     vm.showError(reason);
@@ -120,14 +131,15 @@ new Vue({
             if (this.currentDocument !== null) {
                 var vm = this;
                 vm.currentDocument.data = vm.documentData;
+                vm.commitStatus = vm.CommitStatus.pushing;
 
-                // we don't need to save this with old labels
+                // we don't need to save document with old version labels
                 // just leave it empty for now
                 vm.currentDocument.versionLabel = null;
 
                 axios.post('/rest/docs/update', vm.currentDocument)
                     .then(function (response) {
-                        vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.pushed);
+                        vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.pushed, true);
                     })
                     .catch(function (reason) {
                         vm.showError(reason);
