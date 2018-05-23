@@ -12,47 +12,52 @@ new Vue({
             noData: 0,
             justLoaded: 1,
             modified: 2,
-            pushing: 3,
-            pushed: 4,
-            fetching: 5,
-            fetched: 6
+            pushed: 3,
+            fetched: 4
+        },
+        ProcessStatus: {
+            idle: 0,
+            pushing: 1,
+            fetching: 2
         },
         commitStatus: 0,
+        processStatus: 0,
+        ignoreWatchOnce: false,
         pushInterval: 3000,
         fetchInterval: 1000
     },
     computed: {},
     watch: {
         documentData: function () {
-            if(this.commitStatus != this.CommitStatus.justLoaded
-                && this.commitStatus != this.CommitStatus.fetching) {
-                this.commitStatus = this.CommitStatus.modified;
-            } else {
-                this.commitStatus = this.commitStatus == this.CommitStatus.fetching ?
-                    this.CommitStatus.fetched : this.CommitStatus.pushed;
+            if (this.ignoreWatchOnce === true) {
+                this.ignoreWatchOnce = false;
+                return;
             }
+
+            this.commitStatus = this.CommitStatus.modified;
         }
     },
     methods: {
         pushChanges: function () {
-            if (this.currentDocument && this.commitStatus == this.CommitStatus.modified) {
+            if (this.currentDocument
+                && this.commitStatus == this.CommitStatus.modified
+                && this.processStatus == this.ProcessStatus.idle) {
                 console.log("pushing!");
                 this.pushDocument();
             }
         },
         fetchChanges: function () {
-            if(this.currentDocument
+            if (this.currentDocument
                 && this.checkFetchingAvailability()) {
-                console.log("commit status: " + this.commitStatus);
                 console.log("requesting last version");
                 var vm = this;
                 axios.get('/rest/docs/' + this.currentDocument.id + "/lastupdate")
                     .then(function (response) {
-                        if(response.data > vm.currentDocument.lastModification
+                        if (response.data > vm.currentDocument.lastModification
                             && vm.checkFetchingAvailability()) {
                             console.log("detected new version");
-                            vm.commitStatus = vm.CommitStatus.fetching;
-                            vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.fetching);
+                            vm.commitStatus = vm.CommitStatus.fetched;
+                            vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.fetched);
                         }
                     })
                     .catch(function (reason) {
@@ -61,11 +66,13 @@ new Vue({
             }
         },
         checkFetchingAvailability: function () {
-            return this.commitStatus == this.CommitStatus.pushed
-                || this.commitStatus == this.CommitStatus.fetched;
+            return (this.commitStatus == this.CommitStatus.pushed
+                || this.commitStatus == this.CommitStatus.fetched
+                || this.commitStatus == this.CommitStatus.justLoaded)
+                && this.processStatus == this.ProcessStatus.idle;
         },
         showError: function (reason) {
-            if(reason.response) {
+            if (reason.response) {
                 this.errorMessage = reason.response.data.message;
             } else {
                 this.errorMessage = reason.message;
@@ -73,7 +80,7 @@ new Vue({
 
             alert(this.errorMessage);
         },
-        closeError: function() {
+        closeError: function () {
             this.errorMessage = "";
         },
         createDocument: function () {
@@ -110,18 +117,18 @@ new Vue({
         },
         loadDocument: function (id, commitStatus, updateVersionOnly) {
             var vm = this;
+            vm.processStatus = vm.ProcessStatus.fetching;
             axios.get("/rest/docs/" + id)
                 .then(function (response) {
-                    if(!commitStatus) {
+                    if (!commitStatus) {
                         commitStatus = vm.CommitStatus.justLoaded;
                     }
+                    vm.ignoreWatchOnce = true;
+                    vm.currentDocument = response.data;
+                    vm.documentData = vm.currentDocument.data;
+
                     vm.commitStatus = commitStatus;
-                    if(updateVersionOnly === true) {
-                        vm.currentDocument.lastModified = response.data.lastModified;
-                    } else {
-                        vm.currentDocument = response.data;
-                        vm.documentData = vm.currentDocument.data;
-                    }
+                    vm.processStatus = vm.ProcessStatus.idle;
                 })
                 .catch(function (reason) {
                     vm.showError(reason);
@@ -131,7 +138,8 @@ new Vue({
             if (this.currentDocument !== null) {
                 var vm = this;
                 vm.currentDocument.data = vm.documentData;
-                vm.commitStatus = vm.CommitStatus.pushing;
+                vm.processStatus = vm.ProcessStatus.pushing;
+                vm.commitStatus = vm.CommitStatus.pushed;
 
                 // we don't need to save document with old version labels
                 // just leave it empty for now
@@ -139,7 +147,14 @@ new Vue({
 
                 axios.post('/rest/docs/update', vm.currentDocument)
                     .then(function (response) {
-                        vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.pushed, true);
+                        axios.get('rest/docs/' + vm.currentDocument.id + '/lastupdate')
+                            .then(function (response) {
+                                vm.currentDocument.lastModification = response.data;
+                                vm.processStatus = vm.ProcessStatus.idle;
+                            })
+                            .catch(function (reason) {
+                                vm.showError(reason);
+                            })
                     })
                     .catch(function (reason) {
                         vm.showError(reason);
