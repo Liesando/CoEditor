@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
 </head>
 <body>
-<div id="main" class="container-fluid">
+<div id="main" class="container-fluid" style="height: 100vh">
 
     <div class="row">
         <h1 class="col-3">CoEditor</h1>
@@ -58,29 +58,35 @@
 
             </div>
             <template v-if="currentDocument">
-                <textarea v-if="commitStatus != CommitStatus.fetching" class="form-control" style="height: 100%;"
+                <textarea v-if="processStatus != ProcessStatus.fetching" class="form-control" style="height: 100%;"
                           v-model="documentData"></textarea>
                 <textarea v-else disabled class="form-control" style="height: 100%;" v-model="documentData"></textarea>
 
                 <div class="row justify-content-center">
-                    <label class="col-form-label text-muted" v-if="commitStatus == CommitStatus.noData">
-                        no data
-                    </label>
-                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.modified">
-                        modified, preparing to push...
-                    </label>
-                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.pushing">
+                    <template v-if="processStatus == ProcessStatus.idle">
+                        <label class="col-form-label text-muted" v-if="commitStatus == CommitStatus.noData">
+                            no data
+                        </label>
+                        <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.justLoaded">
+                            just loaded
+                        </label>
+                        <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.modified">
+                            modified, preparing to push...
+                        </label>
+                        <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.pushed">
+                            changes saved
+                        </label>
+                        <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.fetched">
+                            fetched
+                        </label>
+                    </template>
+                    <label v-else-if="processStatus == ProcessStatus.pushing" class="col-form-label text-muted">
                         pushing...
                     </label>
-                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.pushed">
-                        changes saved
-                    </label>
-                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.fetching">
+                    <label v-else-if="processStatus == ProcessStatus.fetching" class="col-form-label text-muted">
                         fetching...
                     </label>
-                    <label class="col-form-label text-muted" v-else-if="commitStatus == CommitStatus.fetched">
-                        fetched
-                    </label>
+
                 </div>
             </template>
             <textarea v-else disabled
