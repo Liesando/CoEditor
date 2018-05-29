@@ -19,7 +19,8 @@ new Vue({
         },
         commitStatus: 0,
         pushInterval: 3000,
-        fetchInterval: 1000
+        fetchInterval: 1000,
+        username: ""
     },
     computed: {},
     watch: {
@@ -145,18 +146,47 @@ new Vue({
                         vm.showError(reason);
                     })
             }
+        },
+        authenticateThenSetup: function () {
+            var vm = this;
+            axios.get("/auth/me")
+                .then(function (value) {
+                    vm.username = value.data;
+                    vm.setup();
+                })
+                .catch(function (reason) {
+                    if(reason.response.status == 401) {
+                        // unauthorized
+                        window.location = "/login.html";
+                    }
+                });
+        },
+        setup: function () {
+            var vm = this;
+
+            vm.updateDocList();
+
+            setInterval(function () {
+                vm.pushChanges();
+            }, vm.pushInterval);
+
+            setInterval(function () {
+                vm.fetchChanges();
+            }, vm.fetchInterval);
+        },
+        logout: function () {
+            axios.get('/logout')
+                .then(function (value) {
+                    window.location = "/login.html";
+                })
+                .catch(function (reason) {
+                    alert(reason);
+                })
         }
     },
     created: function () {
         var vm = this;
-        vm.updateDocList();
 
-        setInterval(function () {
-            vm.pushChanges();
-        }, vm.pushInterval);
-
-        setInterval(function () {
-            vm.fetchChanges();
-        }, vm.fetchInterval);
+        vm.authenticateThenSetup();
     }
 });

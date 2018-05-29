@@ -16,6 +16,12 @@ public class SqlQueryTemplates {
 
     public static final String SELECT_ALL_DOCUMENTS = "SELECT * FROM " + DBTables.DOCUMENTS;
 
+    public static final String SELECT_USER_BY_USERNAME_PREPARED = "SELECT * FROM " + DBTables.USERS +
+            " WHERE " + DBColumns.USER_USERNAME + " = ?";
+
+    public static final String INSERT_USER_PREPARED = "INSERT INTO " + DBTables.USERS +
+            " VALUES(?,?)";
+
     public static String selectLastVersionOfDocument(int id) {
         return "SELECT dv." + DBColumns.DOCUMENT_ID +
                 ", d." + DBColumns.DOCUMENT_NAME +

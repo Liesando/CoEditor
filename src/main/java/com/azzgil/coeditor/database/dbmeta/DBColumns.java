@@ -7,6 +7,9 @@ public class DBColumns {
     public static final String DOCUMENT_DATA = "DOCUMENT_DATA";
     public static final String VERSION_NAME = "VERSION_NAME";
 
+    public static final String USER_USERNAME = "USERNAME";
+    public static final String USER_PASSWORD = "PASSWORD";
+
     private DBColumns() {
     }
 }

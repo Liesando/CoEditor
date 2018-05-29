@@ -6,16 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>CoEditor</title>
-    <script src="https://ru.vuejs.org/js/vue.js"></script>
+    <script src="js/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
 </head>
 <body>
-<div id="main" class="container-fluid" style="height: 100vh">
+<div id="main" class="container-fluid">
 
-    <h1>CoEditor</h1>
+    <div class="row">
+        <h1 class="col-3">CoEditor</h1>
+        <template v-if="username.length > 0">
+            <div class="text-right col-9">
+                <p class="text-dark"><em>You are logged in as: {{ username }}</em>.<br> <a href="#" @click="logout">Log out</a></p>
+            </div>
+        </template>
+    </div>
 
     <div class="row justify-content-center" style="height: 70vh">
 
@@ -24,7 +31,8 @@
             <div class="input-group">
                 <input v-model.trim="documentName" placeholder="Type a name for new document"
                        class="form-control col-8">
-                <button @click="createDocument" type="button" class="btn btn-primary col-4">Create Document</button>
+                <button @click="createDocument" type="button" class="btn btn-primary col-4 ml-1">Create Document
+                </button>
             </div>
             <br>
 
@@ -81,7 +89,7 @@
     </div>
 </div>
 
-<script src="main.js"></script>
+<script src="js/main.js"></script>
 
 <!-- Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

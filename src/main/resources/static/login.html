@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Bootstrap required meta -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Login</title>
+
+    <script src="js/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+<body>
+<div id="main" class="container-fluid">
+
+    <div class="row">
+        <h1 class="col-3">CoEditor</h1>
+    </div>
+
+    <br>
+    <div class="row pt-2 pl-2 justify-content-center">
+        <p>You need to be logged in in order to be able to work with documents</p>
+    </div>
+
+    <template v-if="loginMode">
+        <div class="row justify-content-center">
+            <form class="col-4">
+                <fieldset>
+                    <legend>Log in</legend>
+
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input id="username" placeholder="login" v-model="username"
+                               class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input id="password" type="password" name="password" placeholder="password" v-model="password"
+                               class="form-control">
+                    </div>
+                    <input type="submit" value="Login" v-on:click.stop.prevent="doLogin"
+                           class="btn btn-primary"/>
+                </fieldset>
+            </form>
+        </div>
+        <div class="row justify-content-center">
+            <p>Do not have an account? <a href="#" @click="switchMode">Sign up!</a></p>
+        </div>
+    </template>
+    <template v-else>
+        <div class="row justify-content-center">
+            <form class="col-4">
+                <fieldset>
+                    <legend>Sign Up</legend>
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input id="username" placeholder="login" v-model="username"
+                               class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input id="password" type="password" placeholder="password" v-model="password"
+                               class="form-control">
+                    </div>
+                    <input type="submit" name="submit" value="Sign Up" v-on:click.stop.prevent="register"
+                           class="btn btn-primary"/>
+                </fieldset>
+            </form>
+        </div>
+        <div class="row pt-2 pl-2 justify-content-center">
+            <p>Already have an account? <a href="#" @click="switchMode">Log in!</a></p>
+        </div>
+    </template>
+</div>
+<script src="js/login.js"></script>
+
+<!-- Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
+        integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+        crossorigin="anonymous"></script>
+</body>
+</html>
