@@ -19,7 +19,8 @@
         <h1 class="col-3">CoEditor</h1>
         <template v-if="username.length > 0">
             <div class="text-right col-9">
-                <p class="text-dark"><em>You are logged in as: {{ username }}</em>.<br> <a href="#" @click="logout">Log out</a></p>
+                <p class="text-dark"><em>You are logged in as: {{ username }}</em>.<br> <a href="#" @click="logout">Log
+                    out</a></p>
             </div>
         </template>
     </div>
@@ -51,12 +52,20 @@
         </div>
 
         <div class="col-8">
-            <div class="row">
-                <label v-if="currentDocument" class="col-form-label">
-                    <em>{{ currentDocument.name }}</em>, last edit on: {{ currentDocument.lastModification }}</label>
-                <label v-else class="col-form-label font-weight-bold">Document</label>
 
+            <div class="row">
+                <div class="col-6">
+                    <label v-if="currentDocument" class="col-form-label">
+                        <em>{{ currentDocument.name }}</em>, last edit on: {{ currentDocument.lastModification
+                        }}</label>
+                    <label v-else class="col-form-label font-weight-bold">Document</label>
+                </div>
+                <div class="col-6 text-right">
+                    <label v-if="activeUsers.length > 0"
+                           class="col-form-label"><i>{{ activeUsers }}</i></label>
+                </div>
             </div>
+
             <template v-if="currentDocument">
                 <textarea v-if="processStatus != ProcessStatus.fetching" class="form-control" style="height: 100%;"
                           v-model="documentData"></textarea>

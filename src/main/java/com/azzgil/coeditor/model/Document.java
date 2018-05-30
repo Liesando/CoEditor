@@ -55,4 +55,9 @@ public class Document {
     public void setVersionLabel(String versionLabel) {
         this.versionLabel = versionLabel;
     }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
 }

@@ -7,6 +7,7 @@ new Vue({
         documentName: "",
         docNameError: "",
         currentDocument: null,
+        activeUsers: "",
         documentData: "",
         CommitStatus: {
             noData: 0,
@@ -48,6 +49,14 @@ new Vue({
             }
         },
         fetchChanges: function () {
+
+            // always
+            this.updateDocList();
+
+            if(this.currentDocument) {
+                this.updateActiveUsers();
+            }
+
             if (this.currentDocument
                 && this.checkFetchingAvailability()) {
                 console.log("requesting last version");
@@ -181,13 +190,29 @@ new Vue({
 
             vm.updateDocList();
 
-            setInterval(function () {
-                vm.pushChanges();
-            }, vm.pushInterval);
+            axios.get('/rest/push_interval')
+                .then(function (value) {
+                    vm.pushInterval = value.data;
+                    setInterval(function () {
+                        vm.pushChanges();
+                    }, vm.pushInterval);
+                })
+                .catch(function (reason) {
+                    vm.showError(reason);
+                })
 
-            setInterval(function () {
-                vm.fetchChanges();
-            }, vm.fetchInterval);
+            axios.get('rest/fetch_interval')
+                .then(function (value) {
+                    vm.fetchInterval = value.data;
+                    setInterval(function () {
+                        vm.fetchChanges();
+                    }, vm.fetchInterval);
+                })
+                .catch(function (reason) {
+                    vm.showError(reason);
+                })
+
+
         },
         logout: function () {
             axios.get('/logout')
@@ -196,6 +221,16 @@ new Vue({
                 })
                 .catch(function (reason) {
                     alert(reason);
+                })
+        },
+        updateActiveUsers: function () {
+            var vm = this;
+            axios.get('/rest/docs/' + vm.currentDocument.id + "/activeusers")
+                .then(function (response) {
+                    vm.activeUsers = response.data;
+                })
+                .catch(function (reason) {
+                    vm.showError(reason);
                 })
         }
     },
