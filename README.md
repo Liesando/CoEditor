@@ -30,10 +30,9 @@ In turn, this service is determined to be one more _collaborative-browser-editor
 * Spring Framework
 
   In fact, Spring is a must-know standard of java-development. It offers several modules that allow you to speed-up your development.
-* Pure JDBC
-  
-  Actually _we do not need_ anything more powerful than plain JDBC (Hibernate or Spring Data, for example) since there are no complex entities with lots of relations between them. Thus, it's much easier to implement a basic DB access service and use it everywhere we need an access to the database. 
-  > _Though, this choice may change in some time._
+* Hibernate
+
+  This ORM-framework does all the routine database-stuff work for you, thus reducing amount of utility code.
 * H2 database
 
   A simple light-weight DBMS - easy to use during development.
@@ -54,17 +53,39 @@ Model for the document looks like the following:
 public class Document {
     private int id;
     private String name;
-    private String data;
-    private LocalDateTime lastModification;
-    private String versionLabel;
     
     // getters & setters
 }
 ```
 
+Model for the document version is a bit more complicated, because of some subtle Hibernate requirements:
+```java
+public class DocumentVersion {
+    
+    public static class IdTimePk implements Serializable {
+        private int documentId;
+        private LocalDateTime modificationTime;
+
+        // getters & setters
+    }
+    
+    private IdTimePk primaryKey;
+    private String data;
+    private String versionLabel;
+    private Document document;
+    
+    // getters & setters
+}
+```
+
+All the actual document work is performed with `DocumentVersion`s.
+
 ### Client
 
-Client can create a new document or open an existing one. When document is loaded into the text area client is able to edit it as he wants.
+In order to be allow to work with documents client have to be logged in.
+
+After successful authentication client can create a new document or open an existing one.
+When document is loaded into the text area client is able to edit it as he wants.
 
 The lifecycle of client-side code is quite straight-forward:
 * on initialization ask the server for push and fetch intervals
