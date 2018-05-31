@@ -29,7 +29,7 @@ public class MainRestController {
     private static final int PUSH_INTERVAL = 3000;
     private static final int FETCH_INTERVAL = 1000;
     private static final long ACTIVE_USERS_CHECK_DELAY = 2000;
-    private static final long ACTIVE_USER_EXPIRE_TIME = (PUSH_INTERVAL + FETCH_INTERVAL) * 2;
+    private static final long ACTIVE_USER_EXPIRE_TIME = PUSH_INTERVAL + FETCH_INTERVAL;
     private static final int COLLAPSE_SIZE = 5;
 
     private DocumentService documentService;

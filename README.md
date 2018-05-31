@@ -104,30 +104,25 @@ get users that are currently working with the document specified with id
 
 Server has special logic for handling with active users of every opened document. 
 
-If user wants to work with document he sends server a request with at least his authentication data (session id) and document id.
+If user wants to work with document he sends a request to the server that at least contains 
+his _authentication data_ (session id) and _document id_.
 
 When server gets a request containing user's data (session id) and document id,
-it adds a mapping for that document, indicating that there was seen this user's operations on this document,
-in other words - user's activity.
-
-This is implemented as simple `HashMap`, that maps `Integer` (document id) to another `HashMap`, 
-that in turn maps username to last seen date. It may sound a bit complicated, but when it comes to code, it becomes more obvious:
-
-```java
-public class MainRestController {
-    
-    // some fields and constants
-    
-    // documentId -> {username, lastSeenDate}
-    private HashMap<Integer, HashMap<String, Date>> activeUsers;
-    
-    // other logics
-}
-```
+it remembers that there was seen this user's operations on that exact document.
+In other words - user's activity.
 
 As one may expect the logic of handling active users is simple:
-* if any authenticated request to the document happened - register user as active user of the document
-* periodically refresh active users list: if some user were idle for too long consider him as offline 
+* if any authenticated request to the document happened - remember user as active user of the document
+* periodically refresh active users list: if some user were idle for too long consider him offline 
 and remove from the list
 
-That's all! 
+## How to launch the app?
+
+Current dev-version of the app is ready out-of-the-box. All you need is to checkout (or download .zip) this repository's
+dev-branch, open it in IntelliJ IDEA (or your favorite IDE) and press the _Launch_ button.
+
+> Actually, you may also need to set up JDK for the project.
+
+> Database workflow is designed to create in your linux home folder db-files starting with _coeditor_.
+It was not tested whether these database files are created correctly on Windows or MacOS platform. 
+Please, let me know by emailing me at smedelyan@yandex.ru if you are experiencing any issues with that.
