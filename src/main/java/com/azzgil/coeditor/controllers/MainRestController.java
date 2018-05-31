@@ -1,9 +1,9 @@
 package com.azzgil.coeditor.controllers;
 
 import com.azzgil.coeditor.beans.services.documents.DocumentService;
-import com.azzgil.coeditor.beans.services.documents.DocumentVersionNotFoundException;
-import com.azzgil.coeditor.beans.services.documents.UpdateDocumentUnexpectedException;
+import com.azzgil.coeditor.beans.services.documents.DocumentVersionService;
 import com.azzgil.coeditor.model.Document;
+import com.azzgil.coeditor.model.DocumentVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/rest")
@@ -34,6 +33,7 @@ public class MainRestController {
     private static final int COLLAPSE_SIZE = 5;
 
     private DocumentService documentService;
+    private DocumentVersionService documentVersionService;
     private ScheduledExecutorService executorService;
     private ScheduledFuture<?> updateHandler;
     private HashMap<Integer, HashMap<String, Date>> activeUsers;
@@ -41,6 +41,11 @@ public class MainRestController {
     @Autowired
     public void setDocumentService(DocumentService documentService) {
         this.documentService = documentService;
+    }
+
+    @Autowired
+    public void setDocumentVersionService(DocumentVersionService documentVersionService) {
+        this.documentVersionService = documentVersionService;
     }
 
     @PostConstruct
@@ -86,41 +91,39 @@ public class MainRestController {
     }
 
     @GetMapping("/docs")
-    public List<Document> getAllAvailableDocuments() throws SQLException {
+    public List<Document> getAllAvailableDocuments() throws Exception {
         return documentService.getAllDocuments();
     }
 
     @PostMapping(path = "/docs/new", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public void createDocument(@RequestBody Document document)
-            throws SQLException, DocumentVersionNotFoundException {
+    public void createDocument(@RequestBody Document document) throws Exception {
         documentService.createDocument(document);
     }
 
     @GetMapping("/docs/{id}")
-    public Document getLastDocumentVersion(@PathVariable(value = "id") Integer id, Principal principal)
-            throws SQLException, DocumentVersionNotFoundException {
+    public DocumentVersion getLastDocumentVersion(@PathVariable(value = "id") Integer id, Principal principal)
+            throws Exception {
         registerActiveUser(id, principal.getName());
-        return documentService.getDocumentById(id.intValue());
+        return documentVersionService.getLastVersionOf(id);
     }
 
     @PostMapping(path = "/docs/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateDocument(@RequestBody Document document, Principal principal)
-            throws SQLException, UpdateDocumentUnexpectedException {
-        registerActiveUser(document.getId(), principal.getName());
-        if (!documentService.updateDocument(document)) {
-            throw new UpdateDocumentUnexpectedException();
+    public void updateDocument(@RequestBody DocumentVersion documentVersion, Principal principal)
+            throws Exception {
+        registerActiveUser(documentVersion.getDocument().getId(), principal.getName());
+        if (!documentVersionService.saveDocumentVersion(documentVersion)) {
+            throw new RuntimeException("unpredictable error");
         }
     }
 
     @GetMapping("/docs/{id}/lastupdate")
     public LocalDateTime getLastVersionOfDocument(
             @PathVariable(value = "id") int id, Principal principal)
-            throws SQLException, DocumentVersionNotFoundException {
+            throws Exception {
         registerActiveUser(id, principal.getName());
-        Document document = documentService.getDocumentById(id);
-        return document.getLastModification();
+        return documentVersionService.getLastUpdateTimeOf(id);
     }
 
     @GetMapping("/docs/{id}/activeusers")

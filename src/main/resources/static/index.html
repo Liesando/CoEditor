@@ -19,7 +19,7 @@
         <h1 class="col-3">CoEditor</h1>
         <template v-if="username.length > 0">
             <div class="text-right col-9">
-                <p class="text-dark"><em>You are logged in as: {{ username }}</em>.<br> <a href="#" @click="logout">Log
+                <p class="text-dark"><em>You are logged in as: {{ username }}</em><br> <a href="#" @click="logout">Log
                     out</a></p>
             </div>
         </template>
@@ -56,8 +56,8 @@
             <div class="row">
                 <div class="col-6">
                     <label v-if="currentDocument" class="col-form-label">
-                        <em>{{ currentDocument.name }}</em>, last edit on: {{ currentDocument.lastModification
-                        }}</label>
+                        <em>{{ currentDocument.document.name }}</em>, last edit on:
+                        {{ currentDocument.primaryKey.modificationTime }}</label>
                     <label v-else class="col-form-label font-weight-bold">Document</label>
                 </div>
                 <div class="col-6 text-right">

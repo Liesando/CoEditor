@@ -6,6 +6,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.NoResultException;
 import java.sql.SQLException;
 
 public class UserServiceHibernateImpl implements UserService {
@@ -23,6 +24,8 @@ public class UserServiceHibernateImpl implements UserService {
             User user = session.createQuery("from User where username = :name", User.class)
                     .setParameter("name", username).getSingleResult();
             return user;
+        } catch (NoResultException e) {
+            return null;
         }
     }
 

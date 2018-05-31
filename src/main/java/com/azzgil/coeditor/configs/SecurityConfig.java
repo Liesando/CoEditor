@@ -60,7 +60,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/auth/register", "/login", "/login.html", "/js/**",
                         "/css/**", "/", "/index.html").permitAll()
                 .anyRequest().authenticated();
-//                .antMatchers("/rest/**").authenticated();
         http.exceptionHandling().authenticationEntryPoint(new RESTAuthenticationEntryPoint());
         http.formLogin()
                 .successHandler(new RESTAuthenticationSuccessHandler())

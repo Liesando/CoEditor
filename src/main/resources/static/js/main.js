@@ -61,13 +61,13 @@ new Vue({
                 && this.checkFetchingAvailability()) {
                 console.log("requesting last version");
                 var vm = this;
-                axios.get('/rest/docs/' + this.currentDocument.id + "/lastupdate")
+                axios.get('/rest/docs/' + this.currentDocument.primaryKey.documentId + "/lastupdate")
                     .then(function (response) {
-                        if (response.data > vm.currentDocument.lastModification
+                        if (response.data > vm.currentDocument.primaryKey.modificationTime
                             && vm.checkFetchingAvailability()) {
                             console.log("detected new version");
                             vm.commitStatus = vm.CommitStatus.fetched;
-                            vm.loadDocument(vm.currentDocument.id, vm.CommitStatus.fetched);
+                            vm.loadDocument(vm.currentDocument.primaryKey.documentId, vm.CommitStatus.fetched);
                         }
                     })
                     .catch(function (reason) {
@@ -98,8 +98,7 @@ new Vue({
             if (this.documentName.length > 0) {
                 axios.post('/rest/docs/new', {
                     id: 0,
-                    name: vm.documentName,
-                    data: ""
+                    name: vm.documentName
                 })
                     .then(function (value) {
                         vm.documentName = "";
@@ -157,9 +156,9 @@ new Vue({
 
                 axios.post('/rest/docs/update', vm.currentDocument)
                     .then(function (response) {
-                        axios.get('rest/docs/' + vm.currentDocument.id + '/lastupdate')
+                        axios.get('rest/docs/' + vm.currentDocument.primaryKey.documentId + '/lastupdate')
                             .then(function (response) {
-                                vm.currentDocument.lastModification = response.data;
+                                vm.currentDocument.primaryKey.modificationTime = response.data;
                                 vm.processStatus = vm.ProcessStatus.idle;
                             })
                             .catch(function (reason) {
@@ -225,7 +224,7 @@ new Vue({
         },
         updateActiveUsers: function () {
             var vm = this;
-            axios.get('/rest/docs/' + vm.currentDocument.id + "/activeusers")
+            axios.get('/rest/docs/' + vm.currentDocument.primaryKey.documentId + "/activeusers")
                 .then(function (response) {
                     vm.activeUsers = response.data;
                 })
