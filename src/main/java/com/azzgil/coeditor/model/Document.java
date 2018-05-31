@@ -1,7 +1,12 @@
 package com.azzgil.coeditor.model;
 
+import org.hibernate.annotations.Type;
+
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "DOCUMENTS")
 public class Document {
 
     public static final String INITIAL_STATE_LABEL = "INITIAL STATE";
@@ -12,6 +17,8 @@ public class Document {
     private LocalDateTime lastModification;
     private String versionLabel = INITIAL_STATE_LABEL;
 
+    @Id
+    @Column(name = "DOCUMENT_ID")
     public int getId() {
         return id;
     }
@@ -20,6 +27,7 @@ public class Document {
         this.id = id;
     }
 
+    @Column(name = "DOCUMENT_NAME")
     public String getName() {
         return name;
     }
@@ -28,6 +36,7 @@ public class Document {
         this.name = name;
     }
 
+    @Column(table = "DOCUMENT_VERSIONS", name = "DOCUMENT_DATA")
     public String getData() {
         return data;
     }
@@ -36,10 +45,7 @@ public class Document {
         this.data = data;
     }
 
-    public static String getInitialStateLabel() {
-        return INITIAL_STATE_LABEL;
-    }
-
+    @Transient
     public LocalDateTime getLastModification() {
         return lastModification;
     }
@@ -48,6 +54,7 @@ public class Document {
         this.lastModification = lastModification;
     }
 
+    @Column(table = "DOCUMENT_VERSIONS", name = "VERSION_NAME")
     public String getVersionLabel() {
         return versionLabel;
     }
