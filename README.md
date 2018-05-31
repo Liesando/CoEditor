@@ -32,12 +32,12 @@ In turn, this service is determined to be one more _collaborative-browser-editor
   In fact, Spring is a must-know standard of java-development. It offers several modules that allow you to speed-up your development.
 * Hibernate
 
-  This ORM-framework does all the routine database-stuff work for you, thus reducing amount of utility code.
+  This ORM-framework does all the routine database-stuff work for you, thus reducing the amount of utility code.
 * H2 database
 
   A simple light-weight DBMS - easy to use during development.
   
-## How it works?
+## How it works
 
 ### Data model
 
@@ -82,7 +82,7 @@ All the actual document work is performed with `DocumentVersion`s.
 
 ### Client
 
-In order to be allow to work with documents client have to be logged in.
+In order to be allowed to work with documents client have to be logged in.
 
 After successful authentication client can create a new document or open an existing one.
 When document is loaded into the text area client is able to edit it as he wants.
@@ -133,8 +133,8 @@ it remembers that there was seen this user's operations on that exact document.
 In other words - user's activity.
 
 As one may expect the logic of handling active users is simple:
-* if any authenticated request to the document happened - remember user as active user of the document
-* periodically refresh active users list: if some user were idle for too long consider him offline 
+* if any authenticated request to the document happens - remember user as active user of the document
+* periodically refresh active users list: if some user is idle for too long consider him offline 
 and remove from the list
 
 ## How to launch the app?
