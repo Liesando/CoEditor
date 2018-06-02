@@ -1,7 +1,5 @@
 package com.azzgil.coeditor.configs;
 
-import com.azzgil.coeditor.beans.services.db.DBService;
-import com.azzgil.coeditor.beans.services.db.DBServiceH2Impl;
 import com.azzgil.coeditor.beans.services.documents.DocumentService;
 import com.azzgil.coeditor.beans.services.documents.DocumentServiceHibernateImpl;
 import com.azzgil.coeditor.beans.services.documents.DocumentVersionService;

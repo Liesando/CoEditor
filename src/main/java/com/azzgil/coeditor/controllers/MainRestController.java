@@ -5,6 +5,7 @@ import com.azzgil.coeditor.beans.services.documents.DocumentVersionService;
 import com.azzgil.coeditor.model.Document;
 import com.azzgil.coeditor.model.DocumentVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.security.Principal;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Map.Entry;
@@ -26,11 +26,21 @@ import java.util.concurrent.TimeUnit;
 public class MainRestController {
 
     private static final int INITIAL_CAPACITY = 16;
-    private static final int PUSH_INTERVAL = 3000;
-    private static final int FETCH_INTERVAL = 1000;
-    private static final long ACTIVE_USERS_CHECK_DELAY = 2000;
-    private static final long ACTIVE_USER_EXPIRE_TIME = PUSH_INTERVAL + FETCH_INTERVAL;
-    private static final int COLLAPSE_SIZE = 5;
+
+    @Value("${coeditor.rest.push_interval}")
+    private int PUSH_INTERVAL;
+
+    @Value("${coeditor.rest.fetch_interval}")
+    private int FETCH_INTERVAL;
+
+    @Value("${coeditor.rest.users_check_delay}")
+    private long ACTIVE_USERS_CHECK_DELAY;
+
+    @Value("${coeditor.rest.active_user_expire_time}")
+    private long ACTIVE_USER_EXPIRE_TIME;
+
+    @Value("${coeditor.rest.active_users_collapse_size}")
+    private int COLLAPSE_SIZE = 5;
 
     private DocumentService documentService;
     private DocumentVersionService documentVersionService;
@@ -62,20 +72,12 @@ public class MainRestController {
     }
 
     private void updateActiveUsers() {
+        long time = new Date().getTime();
         for (Integer documentId : activeUsers.keySet()) {
             HashMap<String, Date> active = activeUsers.get(documentId);
 
-
             if (active != null) {
-                Iterator<Entry<String, Date>> it = active.entrySet().iterator();
-                while (it.hasNext()) {
-                    Entry<String, Date> user = it.next();
-
-                    if (new Date().getTime() - user.getValue().getTime()
-                            >= ACTIVE_USER_EXPIRE_TIME) {
-                        it.remove();
-                    }
-                }
+                active.entrySet().removeIf(e -> time - e.getValue().getTime() >= ACTIVE_USER_EXPIRE_TIME);
             }
         }
     }
@@ -102,10 +104,18 @@ public class MainRestController {
     }
 
     @GetMapping("/docs/{id}")
-    public DocumentVersion getLastDocumentVersion(@PathVariable(value = "id") Integer id, Principal principal)
+    public DocumentVersion getLastDocumentVersion(@PathVariable(value = "id") int id, Principal principal)
             throws Exception {
         registerActiveUser(id, principal.getName());
         return documentVersionService.getLastVersionOf(id);
+    }
+
+    @GetMapping("/docs/{id}/version/{version}")
+    public DocumentVersion getLabelledDocumentVersion(@PathVariable("id") int id,
+                                                      @PathVariable("version") String versionLabel,
+                                                      Principal principal) throws Exception {
+        registerActiveUser(id, principal.getName());
+        return documentVersionService.getLabelledVersionOf(id, versionLabel);
     }
 
     @PostMapping(path = "/docs/update", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -118,12 +128,26 @@ public class MainRestController {
         }
     }
 
+    @PutMapping(path = "/docs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void labelDocument(@RequestBody DocumentVersion documentVersion, Principal principal)
+            throws Exception {
+        registerActiveUser(documentVersion.getPrimaryKey().getDocumentId(), principal.getName());
+        documentVersionService.updateDocumentVersion(documentVersion);
+    }
+
     @GetMapping("/docs/{id}/lastupdate")
     public LocalDateTime getLastVersionOfDocument(
-            @PathVariable(value = "id") int id, Principal principal)
+            @PathVariable("id") int id, Principal principal)
             throws Exception {
         registerActiveUser(id, principal.getName());
         return documentVersionService.getLastUpdateTimeOf(id);
+    }
+
+    @GetMapping("docs/{id}/version/all")
+    public List<String> getAllVersionsOf(@PathVariable("id") int documentId, Principal principal)
+            throws Exception {
+        registerActiveUser(documentId, principal.getName());
+        return documentVersionService.getAllVersionLabelsOf(documentId);
     }
 
     @GetMapping("/docs/{id}/activeusers")
@@ -138,11 +162,13 @@ public class MainRestController {
 
                 result += it.next();
 
-                if (current == COLLAPSE_SIZE) {
-                    result += " and " + (active.size() - COLLAPSE_SIZE) + " more";
-                    break;
-                } else if (it.hasNext()) {
-                    result += ", ";
+                if (it.hasNext()) {
+                    if (current == COLLAPSE_SIZE) {
+                        result += " and " + (active.size() - COLLAPSE_SIZE) + " more";
+                        break;
+                    } else {
+                        result += ", ";
+                    }
                 }
 
                 current++;

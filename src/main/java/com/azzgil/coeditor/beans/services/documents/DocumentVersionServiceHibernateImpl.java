@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.NoResultException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class DocumentVersionServiceHibernateImpl implements DocumentVersionService {
 
@@ -42,7 +43,7 @@ public class DocumentVersionServiceHibernateImpl implements DocumentVersionServi
 
     @Override
     public LocalDateTime getLastUpdateTimeOf(int documentId) throws Exception {
-        try(Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             return getLastVersionOf(documentId).getPrimaryKey().getModificationTime();
         }
     }
@@ -58,5 +59,33 @@ public class DocumentVersionServiceHibernateImpl implements DocumentVersionServi
     public boolean saveDocumentVersion(DocumentVersion documentVersion) throws Exception {
         documentVersion.getPrimaryKey().setModificationTime(LocalDateTime.now());
         return HibernateUtils.saveOrUpdateObject(sessionFactory, documentVersion);
+    }
+
+    @Override
+    public DocumentVersion getLabelledVersionOf(int documentId, String versionLabel) throws Exception {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("from DocumentVersion where " +
+                    "primaryKey.documentId = :id and versionLabel = :version " +
+                    "order by primaryKey.modificationTime desc", DocumentVersion.class)
+                    .setParameter("id", documentId)
+                    .setParameter("version", versionLabel)
+                    .setMaxResults(1)
+                    .getSingleResult();
+        }
+    }
+
+    @Override
+    public boolean updateDocumentVersion(DocumentVersion documentVersion) throws Exception {
+        return HibernateUtils.saveOrUpdateObject(sessionFactory, documentVersion);
+    }
+
+    @Override
+    public List<String> getAllVersionLabelsOf(int documentId) throws Exception {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("select versionLabel from DocumentVersion where " +
+                    "primaryKey.documentId = :id and length(versionLabel) > 0 order by primaryKey.modificationTime desc", String.class)
+                    .setParameter("id", documentId)
+                    .list();
+        }
     }
 }

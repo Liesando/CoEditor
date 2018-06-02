@@ -5,8 +5,10 @@ new Vue({
         errorMessage: "",
         docs: {},
         documentName: "",
+        versionLabel: "",
         docNameError: "",
         currentDocument: null,
+        docVersions: null,
         activeUsers: "",
         documentData: "",
         CommitStatus: {
@@ -21,6 +23,8 @@ new Vue({
             pushing: 1,
             fetching: 2
         },
+        observingOldVersion: false,
+        labellingMode: false,
         commitStatus: 0,
         processStatus: 0,
         ignoreWatchOnce: false,
@@ -37,11 +41,14 @@ new Vue({
             }
 
             this.commitStatus = this.CommitStatus.modified;
+        },
+        versionLabel: function (newValue) {
+            this.versionLabel = newValue.replace('?', '');
         }
     },
     methods: {
         pushChanges: function () {
-            if (this.currentDocument
+            if (!this.observingOldVersion && this.currentDocument
                 && this.commitStatus == this.CommitStatus.modified
                 && this.processStatus == this.ProcessStatus.idle) {
                 console.log("pushing!");
@@ -53,11 +60,13 @@ new Vue({
             // always
             this.updateDocList();
 
-            if(this.currentDocument) {
+            if (this.currentDocument) {
                 this.updateActiveUsers();
+                this.updateDocumentVersions();
             }
 
-            if (this.currentDocument
+            if (!this.observingOldVersion
+                && this.currentDocument
                 && this.checkFetchingAvailability()) {
                 console.log("requesting last version");
                 var vm = this;
@@ -124,9 +133,10 @@ new Vue({
         closeDocNameWarning: function () {
             this.docNameError = "";
         },
-        loadDocument: function (id, commitStatus, updateVersionOnly) {
+        loadDocument: function (id, commitStatus) {
             var vm = this;
             vm.processStatus = vm.ProcessStatus.fetching;
+            vm.observingOldVersion = false;
             axios.get("/rest/docs/" + id)
                 .then(function (response) {
                     if (!commitStatus) {
@@ -142,6 +152,23 @@ new Vue({
                 .catch(function (reason) {
                     vm.showError(reason);
                 });
+        },
+        loadLabelledDocument: function (id, version) {
+            var vm = this;
+            vm.processStatus = vm.ProcessStatus.fetching;
+            axios.get('/rest/docs/' + id + "/version/" + version)
+                .then(function (response) {
+                    vm.ignoreWatchOnce = true;
+                    vm.currentDocument = response.data;
+                    vm.documentData = vm.currentDocument.data;
+
+                    vm.commitStatus = vm.CommitStatus.justLoaded;
+                    vm.processStatus = vm.ProcessStatus.idle;
+                    vm.observingOldVersion = true;
+                })
+                .catch(function (reason) {
+                    vm.showError(reason);
+                })
         },
         pushDocument: function () {
             if (this.currentDocument !== null) {
@@ -170,6 +197,33 @@ new Vue({
                     })
             }
         },
+        pushDocumentVersion: function () {
+            if (this.currentDocument !== null) {
+                var vm = this;
+
+                vm.currentDocument.data = vm.documentData;
+                vm.currentDocument.versionLabel = vm.versionLabel;
+                vm.versionLabel = "";
+                vm.labellingMode = false;
+
+                axios.put('/rest/docs', vm.currentDocument)
+                    .catch(function (reason) {
+                        vm.showError(reason);
+                    })
+            }
+        },
+        updateDocumentVersions: function () {
+            if (this.currentDocument !== null) {
+                var vm = this;
+                axios.get('/rest/docs/' + vm.currentDocument.primaryKey.documentId + "/version/all")
+                    .then(function (response) {
+                        vm.docVersions = response.data;
+                    })
+                    .catch(function (reason) {
+                        vm.showError(reason);
+                    })
+            }
+        },
         authenticateThenSetup: function () {
             var vm = this;
             axios.get("/auth/me")
@@ -178,7 +232,7 @@ new Vue({
                     vm.setup();
                 })
                 .catch(function (reason) {
-                    if(reason.response.status == 401) {
+                    if (reason.response.status == 401) {
                         // unauthorized
                         window.location = "/login.html";
                     }
