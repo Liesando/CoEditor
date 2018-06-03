@@ -29,7 +29,9 @@ In turn, this service is determined to be one more _collaborative-browser-editor
 
 * Spring Framework
 
-  In fact, Spring is a must-know standard of java-development. It offers several modules that allow you to speed-up your development.
+  In fact, Spring is a must-know standard of java-development. 
+  It offers several modules that allow you to speed-up your development.
+  In this project the following modules are used: Spring Boot, Spring Security, Spring TestContext.
 * Hibernate
 
   This ORM-framework does all the routine database-stuff work for you, thus reducing the amount of utility code.
@@ -43,9 +45,9 @@ In turn, this service is determined to be one more _collaborative-browser-editor
 
 We will use the following logical model of database.
 
-![logical model](https://image.ibb.co/dgP8ko/Model.png)
+![logical model](https://image.ibb.co/i0b8Sd/Model.png)
 
-Thus, we have files and their versions (optionally labeled with _version name_).
+Thus, we have documents and their versions (optionally labeled with _version name_).
  > You may notice that we store the whole document itself. It is by design, but may change soon.
 
 Model for the document looks like the following:
@@ -84,42 +86,73 @@ All the actual document work is performed with `DocumentVersion`s.
 
 In order to be allowed to work with documents client have to be logged in.
 
-After successful authentication client can create a new document or open an existing one.
-When document is loaded into the text area client is able to edit it as he wants.
+After successful authentication client is able to:
+* create a new document or open existing one;
+
+* edit loaded document;
+
+* save current version of document with specified version label;
+
+* load version of document specified by version label.
+
+---
 
 The lifecycle of client-side code is quite straight-forward:
-* on initialization ask the server for push and fetch intervals
-* periodically check if there are any modifications to the document
-  
-  if they are then push the changes to the server
-* periodically check if there is a newer version of document
+* on initialization ask the server for push and fetch intervals;
 
-  if it is then fetch it from the server and load into the text area
-* periodically load lists of available documents and active users
+* periodically check if there are any modifications to the document;
+  
+  if they are then push the changes to the server;
+* periodically check if there is a newer version of document;
+
+  if it is then fetch it from the server and load into the text area;
+
+* periodically load:
+  - list of available documents;
+  - list of active users;
+  - list of current document versions.
   
 ### Server
 
 On the server side there are following mappings for handling operations on documents:
 * `GET  /rest/docs`
-get _all documents_ without contents
-* `POST /rest/docs/new`
-_create a new_ document that is passed inside of request body
+get _all documents_ without contents;
+
+* `POST /rest/docs`
+_create new_ document;
+
+* `PUT /rest/docs`
+_register new_ document version with current text area's contents;
+
+* `PATCH /rest/docs`
+_label_ current document version with _version name_ (the whole document is passed inside request body);
+
 * `GET  /rest/docs/1`
 get _contents_ of specified document
-* `POST /rest/docs/update`
-register _new version_ of document (passed inside of request body)
+
+* `GET /rest/docs/1/version/version name`
+get version of document with id `1` and labelled as `version name`;
+
+* `GET /rest/docs/1/version/all`
+get list of all versions of document;
+
 * `GET  /rest/docs/1/lastupdate`
-get _date of the last version_ of the document specified with id
+get _the date of the last version_ of the document specified with id;
+
+* `GET /rest/docs/1/activeusers`
+get a string that contains current active users' nicknames.
 
 Also there are two mappings that tune client-side periods of pushing and fetching:
 * `GET  /rest/push_interval`
-get push interval
-* `GET  /rest/fetch_interval`
-get fetch interval
+get push interval;
 
-And the last one mapping provides the list (actually, simple string) of users that are currently working with the same document:
-* `GET  /rest/docs/1/activeusers`
-get users that are currently working with the document specified with id
+* `GET  /rest/fetch_interval`
+get fetch interval.
+
+> Notice: that's prohibited for document version label to be `all` or 
+to contain question marks `?`. Reasons for that are the following: the `/rest/docs/1/versions/all`
+mapping is already registered for controller's needs and `?` symbol
+is treated in some special way by Spring.  
 
 #### Handling active users
 
@@ -133,9 +166,10 @@ it remembers that there was seen this user's operations on that exact document.
 In other words - user's activity.
 
 As one may expect the logic of handling active users is simple:
-* if any authenticated request to the document happens - remember user as active user of the document
+* if any authenticated request to the document happens - remember user as active user of the document;
+
 * periodically refresh active users list: if some user is idle for too long consider him offline 
-and remove from the list
+and remove from the list.
 
 ## How to launch the app?
 
@@ -147,3 +181,33 @@ dev-branch, open it in IntelliJ IDEA (or your favorite IDE) and press the _Launc
 > Database workflow is designed to create in your linux home folder db-files starting with _coeditor_.
 It was not tested whether these database files are created correctly on Windows or MacOS platform. 
 Please, let me know by emailing me at smedelyan@yandex.ru if you are experiencing any issues with that.
+
+## Tweaking applications parameters
+
+There is a `application.properties` configuration file ([here](../src/main/resources/application.properties))
+that contains some parameters explained below:
+
+* `server.port`
+what port should server start on;
+
+* `coeditor.db.url`
+database connection string;
+
+* `coeditor.rest.push_interval`
+how often (once for every `push_interval` milliseconds) client must attempt to push changes;
+
+* `coeditor.rest.fetch_interval`
+how often (once for every `fetch_interval` milliseconds) client must attempt to fetch changes;
+
+* `coeditor.rest.users_check_delay`
+how often (once for every `USERS_CHECK_DELAY` milliseconds) server must check for non-active users;
+
+* `coeditor.rest.active_user_expire_time`
+how much time (in milliseconds) must pass since the last user's request
+to treat him as offline;
+
+* `coeditor.rest.active_user_collapse_size`
+if there are more then this amount of users working with the document, then
+server shall return a string like `"Active users: user1, user2, user3, ... and N more"`
+on request of currently active users;  
+obviously, there are no more than ACTIVE_USER_COLLAPSE_SIZE users' names listed.

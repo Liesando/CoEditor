@@ -50,12 +50,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @ApplicationScope
     public PasswordEncoder encoder() {
-        return new BCryptPasswordEncoder(10);
+        return new BCryptPasswordEncoder();
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
+
+        // make accessible the following paths:
+        // * /login.html, /login, /auth/register - for user's signing in/up
+        // * /js/**, /css/** - for accessing public resources
+        // * /, /index.html - the main page of the app
+        //
+        // other paths require user to be authenticated
         http.authorizeRequests()
                 .antMatchers("/auth/register", "/login", "/login.html", "/js/**",
                         "/css/**", "/", "/index.html").permitAll()

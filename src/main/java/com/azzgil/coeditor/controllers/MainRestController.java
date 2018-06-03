@@ -15,7 +15,6 @@ import javax.annotation.PreDestroy;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -40,10 +39,11 @@ public class MainRestController {
     private long ACTIVE_USER_EXPIRE_TIME;
 
     @Value("${coeditor.rest.active_users_collapse_size}")
-    private int COLLAPSE_SIZE = 5;
+    private int COLLAPSE_SIZE;
 
     private DocumentService documentService;
     private DocumentVersionService documentVersionService;
+
     private ScheduledExecutorService executorService;
     private ScheduledFuture<?> updateHandler;
     private HashMap<Integer, HashMap<String, Date>> activeUsers;
@@ -97,10 +97,32 @@ public class MainRestController {
         return documentService.getAllDocuments();
     }
 
-    @PostMapping(path = "/docs/new", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/docs", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public void createDocument(@RequestBody Document document) throws Exception {
         documentService.createDocument(document);
+    }
+
+    @PutMapping(path = "/docs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updateDocument(@RequestBody DocumentVersion documentVersion, Principal principal)
+            throws Exception {
+        registerActiveUser(documentVersion.getDocument().getId(), principal.getName());
+        if (!documentVersionService.saveDocumentVersion(documentVersion)) {
+            throw new RuntimeException("unpredictable error");
+        }
+    }
+
+    @PatchMapping(path = "/docs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void labelDocument(@RequestBody DocumentVersion documentVersion, Principal principal)
+            throws Exception {
+        registerActiveUser(documentVersion.getPrimaryKey().getDocumentId(), principal.getName());
+
+        // mapping '/rest/docs/1/version/all' is already taken
+        if(documentVersion.getVersionLabel().trim().equals("all")) {
+            return;
+        }
+        documentVersionService.updateDocumentVersion(documentVersion);
     }
 
     @GetMapping("/docs/{id}")
@@ -118,21 +140,11 @@ public class MainRestController {
         return documentVersionService.getLabelledVersionOf(id, versionLabel);
     }
 
-    @PostMapping(path = "/docs/update", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateDocument(@RequestBody DocumentVersion documentVersion, Principal principal)
+    @GetMapping("docs/{id}/version/all")
+    public List<String> getAllVersionsOf(@PathVariable("id") int documentId, Principal principal)
             throws Exception {
-        registerActiveUser(documentVersion.getDocument().getId(), principal.getName());
-        if (!documentVersionService.saveDocumentVersion(documentVersion)) {
-            throw new RuntimeException("unpredictable error");
-        }
-    }
-
-    @PutMapping(path = "/docs", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void labelDocument(@RequestBody DocumentVersion documentVersion, Principal principal)
-            throws Exception {
-        registerActiveUser(documentVersion.getPrimaryKey().getDocumentId(), principal.getName());
-        documentVersionService.updateDocumentVersion(documentVersion);
+        registerActiveUser(documentId, principal.getName());
+        return documentVersionService.getAllVersionLabelsOf(documentId);
     }
 
     @GetMapping("/docs/{id}/lastupdate")
@@ -141,13 +153,6 @@ public class MainRestController {
             throws Exception {
         registerActiveUser(id, principal.getName());
         return documentVersionService.getLastUpdateTimeOf(id);
-    }
-
-    @GetMapping("docs/{id}/version/all")
-    public List<String> getAllVersionsOf(@PathVariable("id") int documentId, Principal principal)
-            throws Exception {
-        registerActiveUser(documentId, principal.getName());
-        return documentVersionService.getAllVersionLabelsOf(documentId);
     }
 
     @GetMapping("/docs/{id}/activeusers")

@@ -105,7 +105,7 @@ new Vue({
         createDocument: function () {
             var vm = this;
             if (this.documentName.length > 0) {
-                axios.post('/rest/docs/new', {
+                axios.post('/rest/docs', {
                     id: 0,
                     name: vm.documentName
                 })
@@ -181,7 +181,7 @@ new Vue({
                 // just leave it empty for now
                 vm.currentDocument.versionLabel = null;
 
-                axios.post('/rest/docs/update', vm.currentDocument)
+                axios.put('/rest/docs', vm.currentDocument)
                     .then(function (response) {
                         axios.get('rest/docs/' + vm.currentDocument.primaryKey.documentId + '/lastupdate')
                             .then(function (response) {
@@ -206,7 +206,7 @@ new Vue({
                 vm.versionLabel = "";
                 vm.labellingMode = false;
 
-                axios.put('/rest/docs', vm.currentDocument)
+                axios.patch('/rest/docs', vm.currentDocument)
                     .catch(function (reason) {
                         vm.showError(reason);
                     })

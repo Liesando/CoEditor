@@ -17,6 +17,8 @@ public class DatabaseConfig {
     public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource);
+
+        // hard-coded, since there's no need to tweak this parameter from outside
         sessionFactory.setPackagesToScan("com.azzgil.coeditor.model");
         return sessionFactory;
     }

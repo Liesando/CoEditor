@@ -16,16 +16,10 @@ public class DocumentVersionServiceHibernateImpl implements DocumentVersionServi
     private static final String INITIAL_VERSION = "initial version";
 
     private SessionFactory sessionFactory;
-    private DocumentService documentService;
 
     @Autowired
     public void setSessionFactory(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
-    }
-
-    @Autowired
-    public void setDocumentService(DocumentService documentService) {
-        this.documentService = documentService;
     }
 
     @Override
@@ -51,7 +45,6 @@ public class DocumentVersionServiceHibernateImpl implements DocumentVersionServi
     @Override
     public boolean createDocumentVersion(Document document) throws Exception {
         DocumentVersion documentVersion = new DocumentVersion(document, "", INITIAL_VERSION);
-
         return HibernateUtils.saveOrUpdateObject(sessionFactory, documentVersion);
     }
 
@@ -63,6 +56,10 @@ public class DocumentVersionServiceHibernateImpl implements DocumentVersionServi
 
     @Override
     public DocumentVersion getLabelledVersionOf(int documentId, String versionLabel) throws Exception {
+
+        // if there are several same-labelled versions of document
+        // select the most actual one
+        // ? NON-DOCUMENTED BEHAVIOR ?
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("from DocumentVersion where " +
                     "primaryKey.documentId = :id and versionLabel = :version " +
@@ -81,6 +78,8 @@ public class DocumentVersionServiceHibernateImpl implements DocumentVersionServi
 
     @Override
     public List<String> getAllVersionLabelsOf(int documentId) throws Exception {
+
+        // skip empty versions
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("select versionLabel from DocumentVersion where " +
                     "primaryKey.documentId = :id and length(versionLabel) > 0 order by primaryKey.modificationTime desc", String.class)

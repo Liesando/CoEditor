@@ -35,7 +35,8 @@
                     <div class="input-group mb-3">
                         <input id="docName" v-model.trim="documentName" placeholder="Type a name for new document"
                                class="form-control col-8">
-                        <button @click="createDocument" type="button" class="btn btn-primary col-4 ml-1">Create Document
+                        <button data-toggle="tooltip" title="create new!"
+                                @click="createDocument" type="button" class="btn btn-primary col-4 ml-1">Create Document
                         </button>
                     </div>
                 </div>
@@ -87,7 +88,7 @@
                             </div>
                             <button v-bind:disabled="observingOldVersion"
                                     type="button" class="btn btn-outline-primary" @click="labellingMode=true"
-                                    title="label this version!">
+                                    data-toggle="tooltip" title="label this version!">
                                 <em>{{ currentDocument.document.name }}</em>,
                                 <span v-if="!observingOldVersion">last edit</span>
                                 <span v-else>edited</span> on:
@@ -95,6 +96,7 @@
                             </button>
                             <button v-if="observingOldVersion" type="button" class="btn btn-outline-primary"
                                     @click="loadDocument(currentDocument.primaryKey.documentId)"
+                                    data-toggle="tooltip"
                                     title="return to the latest version">
                                 &#10227;
                             </button>
@@ -102,6 +104,7 @@
                         <div v-else class="input-group">
 
                             <button type="button" class="btn btn-outline-primary"
+                                    data-toggle="tooltip"
                                     title="cancel"
                                     @click="labellingMode = false">
                                 &times;
@@ -110,17 +113,12 @@
                             <button type="button" class="btn btn-outline-primary"
                                     @click="pushDocumentVersion"
                                     title="save version!"
-                                    v-bind:disabled="versionLabel.trim().length == 0">&#x2713;
+                                    v-bind:disabled="versionLabel.trim().length == 0 || versionLabel.trim() == 'all'">&#x2713;
                             </button>
                         </div>
                     </template>
                     <label v-else class="col-form-label">&nbsp;</label>
 
-                    <!--</template>-->
-                    <!--<label v-if="currentDocument" class="col-form-label">-->
-                    <!--<em>{{ currentDocument.document.name }}</em>, last edit on:-->
-                    <!--{{ currentDocument.primaryKey.modificationTime }}</label>-->
-                    <!--<label v-else class="col-form-label font-weight-bold">Document</label>-->
                 </div>
                 <div class="col-6 text-right">
                     <label v-if="activeUsers.length > 0"
