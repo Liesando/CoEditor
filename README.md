@@ -1,5 +1,16 @@
 # CoEditor
 
+## Contents
+
+- [What is CoEditor?](#what-is-coeditor)
+- [Frameworks & Instruments used](#frameworks--instruments-used)
+- [How it works](#how-it-works)
+   - [Client](#client)
+   - [Server](#server)
+- [How to launch the app](#how-to-launch-the-app)
+- [Tweaking application parameters](#tweaking-application-parameters)
+
+
 ## What is CoEditor?
 
 **CoEditor** is a service that allows you to create and edit a plain-text document in a concurrent way. This means that there may be a big amount of users working with single document at the same time.
@@ -171,7 +182,7 @@ As one may expect the logic of handling active users is simple:
 * periodically refresh active users list: if some user is idle for too long consider him offline 
 and remove from the list.
 
-## How to launch the app?
+## How to launch the app
 
 Current dev-version of the app is ready out-of-the-box. All you need is to checkout (or download .zip) this repository's
 dev-branch, open it in IntelliJ IDEA (or your favorite IDE) and press the _Launch_ button.
@@ -182,31 +193,31 @@ dev-branch, open it in IntelliJ IDEA (or your favorite IDE) and press the _Launc
 It was not tested whether these database files are created correctly on Windows or MacOS platform. 
 Please, let me know by emailing me at smedelyan@yandex.ru if you are experiencing any issues with that.
 
-## Tweaking applications parameters
+## Tweaking application parameters
 
-There is a `application.properties` configuration file ([here](../src/main/resources/application.properties))
+There is a `application.properties` configuration file ([here](../dev/src/main/resources/application.properties))
 that contains some parameters explained below:
 
-* `server.port`
+* `server.port`  
 what port should server start on;
 
-* `coeditor.db.url`
+* `coeditor.db.url`  
 database connection string;
 
-* `coeditor.rest.push_interval`
+* `coeditor.rest.push_interval`  
 how often (once for every `push_interval` milliseconds) client must attempt to push changes;
 
-* `coeditor.rest.fetch_interval`
+* `coeditor.rest.fetch_interval`  
 how often (once for every `fetch_interval` milliseconds) client must attempt to fetch changes;
 
-* `coeditor.rest.users_check_delay`
+* `coeditor.rest.users_check_delay`  
 how often (once for every `USERS_CHECK_DELAY` milliseconds) server must check for non-active users;
 
-* `coeditor.rest.active_user_expire_time`
+* `coeditor.rest.active_user_expire_time`  
 how much time (in milliseconds) must pass since the last user's request
 to treat him as offline;
 
-* `coeditor.rest.active_user_collapse_size`
+* `coeditor.rest.active_user_collapse_size`  
 if there are more then this amount of users working with the document, then
 server shall return a string like `"Active users: user1, user2, user3, ... and N more"`
 on request of currently active users;  
