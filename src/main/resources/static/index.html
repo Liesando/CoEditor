@@ -5,63 +5,102 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"/>
+
     <title>CoEditor</title>
+
+    <!-- Vue.js + axios -->
     <script src="js/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <!-- BootstrapVue-->
+    <script src="//unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+    <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
 </head>
 <body>
 <div id="main" class="container-fluid" style="height: 100vh">
 
+    <!-- Loading modal window -->
+    <!-- Actually it is not seen on local machine due to high connection speed
+    and immediate page loading
+    -->
+    <b-modal v-model="isPageLoading"
+             size="sm"
+             hide-header
+             hide-footer
+             no-close-on-backdrop
+             no-close-on-esc>
+        <p>Loading...</p>
+    </b-modal>
+
+    <!-- Error modal window -->
+    <b-modal ref="errorsModal" v-model="hasErrors"
+             title="Error occurred"
+             size="sm" ok-only
+             header-bg-variant="danger"
+             @hidden="errorMessage=''">
+        <p>{{ errorMessage}}</p>
+    </b-modal>
+
+    <!-- Banner & login info -->
     <div class="row">
         <h1 class="col-3">CoEditor</h1>
         <template v-if="username.length > 0">
             <div class="text-right col-9">
-                <p class="text-dark"><em>You are logged in as: {{ username }}</em><br> <a href="#" @click="logout">Log
-                    out</a></p>
+                <p class="text-dark"><em>You are logged in as: {{ username }}</em><br>
+                    <b-link href="#" @click="logout">
+                        Log out
+                    </b-link>
+                </p>
             </div>
         </template>
     </div>
 
+    <!-- content -->
     <div class="row justify-content-center" style="height: 75vh;">
-
         <div class="col-4">
 
+            <!-- create document section -->
             <div class="row">
                 <div class="col-12">
                     <label class="col-form-label font-weight-bold">&nbsp;</label>
                     <div class="input-group mb-3">
-                        <input id="docName" v-model.trim="documentName" placeholder="Type a name for new document"
-                               class="form-control col-8">
-                        <button data-toggle="tooltip" title="create new!"
-                                @click="createDocument" type="button" class="btn btn-primary col-4 ml-1">Create Document
-                        </button>
+                        <b-form-input id="docName" v-model.trim="documentName"
+                                      placeholder="Type a name for new document"
+                                      class="col-8"></b-form-input>
+                        <b-button v-b-tooltip.hover title="create new!"
+                                  @click="createDocument" variant="primary" class="col-4 ml-1">Create Document
+                        </b-button>
                     </div>
                 </div>
             </div>
+            <b-alert variant="warning" :show="docNameError.length > 0">
+                <b-button class="close" @click="closeDocNameWarning">&times;</b-button>
+                <p>{{ docNameError }}</p>
+            </b-alert>
 
+            <!-- Available documents -->
             <div class="row">
                 <div class="col-12">
-                    <div class="card mb-2 h-100">
-                        <h4 class="card-header">Available documents</h4>
-                        <div class="pre-scrollable col-12 card-body">
-                            <div v-if="docs.length && docs.length>0" class="list-group h-100">
-                                <button v-for="doc in docs" class="list-group-item list-group-item-action"
+                    <b-card class="mb-2 h-100">
+                        <h4 slot="header">Available documents</h4>
+                        <div class="pre-scrollable col-12">
+                            <b-list-group v-if="docs.length && docs.length>0" class="h-100">
+                                <b-list-group-item
+                                        button
+                                        v-for="doc in docs"
+                                        :key="doc.id"
+                                        :active="currentDocument && doc.id == currentDocument.document.id"
                                         @click="loadDocument(doc.id)">
                                     {{ doc.name }}
-                                </button>
-                            </div>
+                                    </b-list-group-itembutton>
+                            </b-list-group>
                             <p v-else>There are no documents. Create new!</p>
                         </div>
-                    </div>
+                    </b-card>
                 </div>
-            </div>
-
-            <div class="alert alert-warning" v-if="docNameError.length > 0">
-                <button type="button" class="close" @click="closeDocNameWarning">&times;</button>
-                <p>{{ docNameError }}</p>
             </div>
 
         </div>
@@ -70,70 +109,73 @@
             <div class="row">
                 <div class="col-6">
 
+                    <!-- document version controls -->
                     <template v-if="currentDocument">
-
-                        <div v-if="!labellingMode" class="btn-group">
-                            <div class="btn-group">
-                                <button id="btn1" type="button" class="btn btn-outline-primary dropdown-toggle"
-                                        data-toggle="dropdown"></button>
-                                <div class="dropdown-menu" aria-labelledby="btn1" x-placement="bottom-start"
-                                     style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 37px, 0px);">
-                                    <div class="pre-scrollable" style="height: 200px;">
-                                        <a v-for="version in docVersions" class="dropdown-item" href="#"
-                                           @click="loadLabelledDocument(currentDocument.primaryKey.documentId, version)">
-                                            {{ version }}
-                                        </a>
-                                    </div>
+                        <b-btn-group v-if="!labellingMode">
+                            <b-dropdown variant="outline-primary" v-b-tooltip.hover title="select document version">
+                                <div class="pre-scrollable" style="height: 200px">
+                                    <b-dropdown-item-button v-for="version in docVersions"
+                                                            :key="version.primaryKey"
+                                                            @click="loadLabelledDocument(currentDocument.primaryKey.documentId, version)">
+                                        {{ version }}
+                                    </b-dropdown-item-button>
                                 </div>
-                            </div>
-                            <button v-bind:disabled="observingOldVersion"
-                                    type="button" class="btn btn-outline-primary" @click="labellingMode=true"
-                                    data-toggle="tooltip" title="label this version!">
+                            </b-dropdown>
+                            <b-button :disabled="observingOldVersion" variant="outline-primary"
+                                      @click="labellingMode=true"
+                                      v-b-tooltip.hover title="label this version!">
                                 <em>{{ currentDocument.document.name }}</em>,
                                 <span v-if="!observingOldVersion">last edit</span>
                                 <span v-else>edited</span> on:
                                 {{ currentDocument.primaryKey.modificationTime }}
-                            </button>
-                            <button v-if="observingOldVersion" type="button" class="btn btn-outline-primary"
-                                    @click="loadDocument(currentDocument.primaryKey.documentId)"
-                                    data-toggle="tooltip"
-                                    title="return to the latest version">
+                            </b-button>
+                            <b-button v-if="observingOldVersion" variant="outline-primary"
+                                      @click="loadDocument(currentDocument.primaryKey.documentId)"
+                                      v-b-tooltip.hover title="return to the latest version">
                                 &#10227;
-                            </button>
-                        </div>
-                        <div v-else class="input-group">
+                            </b-button>
+                        </b-btn-group>
+                        <b-input-group v-else>
 
-                            <button type="button" class="btn btn-outline-primary"
-                                    data-toggle="tooltip"
-                                    title="cancel"
-                                    @click="labellingMode = false">
+                            <b-button variant="outline-primary"
+                                      v-b-tooltip.hover title="cancel"
+                                      @click="labellingMode = false">
                                 &times;
-                            </button>
-                            <input v-model.trim="versionLabel" class="form-control" placeholder="Type version label here">
-                            <button type="button" class="btn btn-outline-primary"
-                                    @click="pushDocumentVersion"
-                                    title="save version!"
-                                    v-bind:disabled="versionLabel.trim().length == 0 || versionLabel.trim() == 'all'">&#x2713;
-                            </button>
-                        </div>
+                            </b-button>
+                            <b-form-input v-model.trim="versionLabel"
+                                          placeholder="Type version label here"></b-form-input>
+                            <b-button variant="outline-primary"
+                                      @click="pushDocumentVersion"
+                                      v-b-tooltip.hover title="save version!"
+                                      :disabled="versionLabel.trim().length == 0 || versionLabel.trim().toLowerCase() == 'all'">
+                                &#x2713;
+                            </b-button>
+                        </b-input-group>
                     </template>
                     <label v-else class="col-form-label">&nbsp;</label>
-
                 </div>
+
+                <!-- active users -->
                 <div class="col-6 text-right">
                     <label v-if="activeUsers.length > 0"
-                           class="col-form-label"><i>{{ activeUsers }}</i></label>
+                           class="col-form-label"><i>{{ activeUsers }}</i>
+                    </label>
                 </div>
             </div>
 
+            <!-- working field -->
             <div class="row justify-content-center h-100">
                 <div class="col-12">
+
                     <template v-if="currentDocument">
-                    <textarea v-if="processStatus != ProcessStatus.fetching && !observingOldVersion"
-                              class="form-control h-100"
-                              v-model="documentData"></textarea>
+
+                        <!-- text area -->
+                        <textarea v-if="processStatus != ProcessStatus.fetching && !observingOldVersion"
+                                  class="form-control h-100"
+                                  v-model="documentData"></textarea>
                         <textarea v-else disabled class="form-control h-100" v-model="documentData"></textarea>
 
+                        <!-- status of changes -->
                         <div class="row justify-content-center">
                             <template v-if="processStatus == ProcessStatus.idle">
                                 <label class="col-form-label text-muted" v-if="commitStatus == CommitStatus.noData">
@@ -175,15 +217,5 @@
 
 <script src="js/main.js"></script>
 
-<!-- Bootstrap -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
-        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
-        integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
-        crossorigin="anonymous"></script>
 </body>
 </html>

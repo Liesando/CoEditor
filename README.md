@@ -34,7 +34,7 @@ In turn, this service is determined to be one more _collaborative-browser-editor
 
   A library that allows ajax-requests and handling responses.
  
-* Bootstrap
+* BootstrapVue
   
 ### Back-end
 
@@ -42,7 +42,7 @@ In turn, this service is determined to be one more _collaborative-browser-editor
 
   In fact, Spring is a must-know standard of java-development. 
   It offers several modules that allow you to speed-up your development.
-  In this project the following modules are used: Spring Boot, Spring Security, Spring TestContext.
+  In this project the following modules are used: Spring Boot, Spring IoC, Spring Security, Spring TestContext.
 * Hibernate
 
   This ORM-framework does all the routine database-stuff work for you, thus reducing the amount of utility code.
@@ -195,7 +195,7 @@ Please, let me know by emailing me at smedelyan@yandex.ru if you are experiencin
 
 ## Tweaking application parameters
 
-There is a `application.properties` configuration file ([here](../dev/src/main/resources/application.properties))
+There is an `application.properties` configuration file ([here](../dev/src/main/resources/application.properties))
 that contains some parameters explained below:
 
 * `server.port`  
@@ -221,4 +221,4 @@ to treat him as offline;
 if there are more then this amount of users working with the document, then
 server shall return a string like `"Active users: user1, user2, user3, ... and N more"`
 on request of currently active users;  
-obviously, there are no more than ACTIVE_USER_COLLAPSE_SIZE users' names listed.
+obviously, there are no more than ACTIVE_USER_COLLAPSE_SIZE users' names listed.  

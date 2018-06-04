@@ -2,7 +2,9 @@
 new Vue({
     el: "#main",
     data: {
+        isPageLoading: true,
         errorMessage: "",
+        hasErrors: false,
         docs: {},
         documentName: "",
         versionLabel: "",
@@ -44,6 +46,9 @@ new Vue({
         },
         versionLabel: function (newValue) {
             this.versionLabel = newValue.replace('?', '');
+        },
+        errorMessage: function (newValue) {
+            this.hasErrors = newValue.trim().length > 0;
         }
     },
     methods: {
@@ -96,11 +101,6 @@ new Vue({
             } else {
                 this.errorMessage = reason.message;
             }
-
-            alert(this.errorMessage);
-        },
-        closeError: function () {
-            this.errorMessage = "";
         },
         createDocument: function () {
             var vm = this;
@@ -230,6 +230,7 @@ new Vue({
                 .then(function (value) {
                     vm.username = value.data;
                     vm.setup();
+                    vm.isPageLoading = false;
                 })
                 .catch(function (reason) {
                     if (reason.response.status == 401) {
@@ -240,9 +241,7 @@ new Vue({
         },
         setup: function () {
             var vm = this;
-
             vm.updateDocList();
-
             axios.get('/rest/push_interval')
                 .then(function (value) {
                     vm.pushInterval = value.data;

@@ -7,14 +7,28 @@
 
     <title>Login</title>
 
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"/>
+
+    <!-- Vue.js + axios -->
     <script src="js/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <!-- BootstrapVue-->
+    <script src="//unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+    <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
 </head>
 <body>
 <div id="main" class="container-fluid">
+
+    <b-modal ref="errorsModal" v-model="hasErrors"
+             title="Error occurred"
+             size="sm" ok-only
+             header-bg-variant="danger"
+             @hidden="errorMessage=''">
+        <p>{{ errorMessage}}</p>
+    </b-modal>
 
     <div class="row">
         <h1 class="col-3">CoEditor</h1>
@@ -27,67 +41,56 @@
 
     <template v-if="loginMode">
         <div class="row justify-content-center">
-            <form class="col-4">
-                <fieldset>
-                    <legend>Log in</legend>
-
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input id="username" placeholder="login" v-model="username"
-                               class="form-control">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input id="password" type="password" name="password" placeholder="password" v-model="password"
-                               class="form-control">
-                    </div>
-                    <input type="submit" value="Login" v-on:click.stop.prevent="doLogin"
-                           class="btn btn-primary"/>
-                </fieldset>
-            </form>
+            <b-form @submit.stop.prevent="doLogin" class="mb-2">
+                <b-form-group label="Username"
+                              label-for="inputUsername">
+                    <b-form-input id="inputUsername" v-model="username"
+                                  placeholder="Enter your username">
+                    </b-form-input>
+                </b-form-group>
+                <b-form-group label="Password" label-for="inputPassword">
+                    <b-form-input id="inputPassword" v-model="password"
+                                  placeholder="Enter your password" type="password">
+                    </b-form-input>
+                </b-form-group>
+                <div class="text-center">
+                    <b-button type="submit" variant="primary" size="sm">Log in</b-button>
+                </div>
+            </b-form>
         </div>
         <div class="row justify-content-center">
-            <p>Do not have an account yet? <a href="#" @click="switchMode">Sign up!</a></p>
+            <p>Do not have an account yet?
+                <b-link href="#" @click="switchMode">Sign up!</b-link>
+            </p>
         </div>
     </template>
     <template v-else>
         <div class="row justify-content-center">
-            <form class="col-4">
-                <fieldset>
-                    <legend>Sign Up</legend>
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input id="username" placeholder="login" v-model="username"
-                               class="form-control">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input id="password" type="password" placeholder="password" v-model="password"
-                               class="form-control">
-                    </div>
-                    <input type="submit" name="submit" value="Sign Up" v-on:click.stop.prevent="register"
-                           class="btn btn-primary"/>
-                </fieldset>
-            </form>
+            <b-form @submit.stop.prevent="register" class="mb-2">
+                <b-form-group label="Username"
+                              label-for="inputUsername">
+                    <b-form-input id="inputUsername" v-model="username"
+                                  placeholder="Enter your username">
+                    </b-form-input>
+                </b-form-group>
+                <b-form-group label="Password" label-for="inputPassword">
+                    <b-form-input id="inputPassword" v-model="password"
+                                  placeholder="Enter your password" type="password">
+                    </b-form-input>
+                </b-form-group>
+                <div class="text-center">
+                    <b-button type="submit" variant="primary" size="sm">Sign Up</b-button>
+                </div>
+            </b-form>
         </div>
         <div class="row justify-content-center">
-            <p>Already have an account? <a href="#" @click="switchMode">Log in!</a></p>
+            <p>Already have an account?
+                <b-link href="#" @click="switchMode">Log in!</b-link>
+            </p>
         </div>
     </template>
 </div>
 <script src="js/login.js"></script>
 
-<!-- Bootstrap -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
-        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
-        integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
-        crossorigin="anonymous"></script>
 </body>
 </html>
