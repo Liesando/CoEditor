@@ -97,7 +97,7 @@ new Vue({
         },
         showError: function (reason) {
             if (reason.response) {
-                this.errorMessage = reason.response.data.message;
+                this.errorMessage = reason.response.data;
             } else {
                 this.errorMessage = reason.message;
             }
@@ -151,6 +151,7 @@ new Vue({
                 })
                 .catch(function (reason) {
                     vm.showError(reason);
+                    vm.processStatus = vm.ProcessStatus.idle;
                 });
         },
         loadLabelledDocument: function (id, version) {
@@ -168,6 +169,7 @@ new Vue({
                 })
                 .catch(function (reason) {
                     vm.showError(reason);
+                    vm.processStatus = vm.ProcessStatus.idle;
                 })
         },
         pushDocument: function () {
@@ -194,6 +196,7 @@ new Vue({
                     })
                     .catch(function (reason) {
                         vm.showError(reason);
+                        vm.processStatus = vm.ProcessStatus.idle;
                     })
             }
         },
