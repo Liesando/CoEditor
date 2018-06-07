@@ -27,7 +27,7 @@ public class UserDetailsServiceDefaultImpl implements UserDetailsService {
             }
 
             return new UserPrincipal(user);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new UsernameNotFoundException(username);
         }
     }

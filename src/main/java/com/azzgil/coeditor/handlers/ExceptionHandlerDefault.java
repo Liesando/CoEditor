@@ -19,6 +19,7 @@ public class ExceptionHandlerDefault extends ResponseEntityExceptionHandler {
 
         // show client nothing; log error to console.
         logger.error(ex.getMessage());
+        ex.printStackTrace();
         String body = "We are sorry, some server error happened.";
         return handleExceptionInternal(ex, body, new HttpHeaders(),
                 HttpStatus.INTERNAL_SERVER_ERROR, request);

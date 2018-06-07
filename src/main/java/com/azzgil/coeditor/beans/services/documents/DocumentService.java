@@ -3,7 +3,6 @@ package com.azzgil.coeditor.beans.services.documents;
 import com.azzgil.coeditor.model.Document;
 import com.azzgil.coeditor.model.DocumentVersion;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public interface DocumentService {
@@ -15,7 +14,7 @@ public interface DocumentService {
      * to instantiate a brand new (empty) version of document.
      *
      * @param document
-     * @throws SQLException
+     * @throws Exception
      */
     boolean createDocument(Document document) throws Exception;
 

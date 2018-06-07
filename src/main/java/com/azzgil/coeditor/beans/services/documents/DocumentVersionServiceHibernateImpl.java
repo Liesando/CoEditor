@@ -30,8 +30,6 @@ public class DocumentVersionServiceHibernateImpl implements DocumentVersionServi
                             "order by primaryKey.modificationTime desc", DocumentVersion.class)
                     .setParameter("id", documentId)
                     .setMaxResults(1).getSingleResult();
-        } catch (NoResultException e) {
-            return null;
         }
     }
 
@@ -58,7 +56,7 @@ public class DocumentVersionServiceHibernateImpl implements DocumentVersionServi
     public DocumentVersion getLabelledVersionOf(int documentId, String versionLabel) throws Exception {
 
         // if there are several same-labelled versions of document
-        // select the most actual one
+        // select the latest one
         // ? NON-DOCUMENTED BEHAVIOR ?
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("from DocumentVersion where " +

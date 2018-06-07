@@ -55,6 +55,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        // for the sake of simplicity disable the csrf-token generation
         http.csrf().disable();
 
         // make accessible the following paths:

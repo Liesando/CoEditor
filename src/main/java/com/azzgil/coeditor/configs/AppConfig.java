@@ -4,6 +4,8 @@ import com.azzgil.coeditor.beans.services.documents.DocumentService;
 import com.azzgil.coeditor.beans.services.documents.DocumentServiceHibernateImpl;
 import com.azzgil.coeditor.beans.services.documents.DocumentVersionService;
 import com.azzgil.coeditor.beans.services.documents.DocumentVersionServiceHibernateImpl;
+import com.azzgil.coeditor.beans.services.users.ActiveUsersService;
+import com.azzgil.coeditor.beans.services.users.ActiveUsersServiceDefaultImpl;
 import com.azzgil.coeditor.beans.services.users.UserService;
 import com.azzgil.coeditor.beans.services.users.UserServiceHibernateImpl;
 import org.springframework.context.annotation.Bean;
@@ -29,5 +31,11 @@ public class AppConfig {
     @ApplicationScope
     public DocumentVersionService documentVersionService() {
         return new DocumentVersionServiceHibernateImpl();
+    }
+
+    @Bean
+    @ApplicationScope
+    public ActiveUsersService activeUsersService() {
+        return new ActiveUsersServiceDefaultImpl();
     }
 }

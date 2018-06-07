@@ -97,7 +97,11 @@ new Vue({
         },
         showError: function (reason) {
             if (reason.response) {
-                this.errorMessage = reason.response.data;
+                if(reason.response.status == 401) {
+                    this.errorMessage = "You are not authorized. Refresh page.";
+                } else {
+                    this.errorMessage = reason.response.data;
+                }
             } else {
                 this.errorMessage = reason.message;
             }
@@ -245,7 +249,7 @@ new Vue({
         setup: function () {
             var vm = this;
             vm.updateDocList();
-            axios.get('/rest/push_interval')
+            axios.get('/rest/config/push_interval')
                 .then(function (value) {
                     vm.pushInterval = value.data;
                     setInterval(function () {
@@ -256,7 +260,7 @@ new Vue({
                     vm.showError(reason);
                 })
 
-            axios.get('rest/fetch_interval')
+            axios.get('rest/config/fetch_interval')
                 .then(function (value) {
                     vm.fetchInterval = value.data;
                     setInterval(function () {

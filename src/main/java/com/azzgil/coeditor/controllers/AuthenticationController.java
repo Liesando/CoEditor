@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.sql.SQLException;
 
 @RestController
 @RequestMapping("/auth")
@@ -29,10 +28,10 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody User user) throws SQLException {
+    public ResponseEntity<String> registerUser(@RequestBody User user) throws Exception {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         boolean result = userService.registerUser(user);
-        return new ResponseEntity<>("", result? HttpStatus.OK: HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("", result ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @GetMapping("/me")

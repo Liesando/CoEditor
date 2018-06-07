@@ -19,7 +19,7 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
-    public User getUserByUsername(String username) throws SQLException {
+    public User getUserByUsername(String username) throws Exception {
         try (Session session = sessionFactory.openSession()) {
             User user = session.createQuery("from User where username = :name", User.class)
                     .setParameter("name", username).getSingleResult();
@@ -30,7 +30,7 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
-    public boolean registerUser(User user) throws SQLException {
+    public boolean registerUser(User user) throws Exception {
         if (getUserByUsername(user.getUsername()) != null) {
             return false;
         }
