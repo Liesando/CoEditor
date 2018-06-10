@@ -34,7 +34,9 @@ In turn, this service is determined to be one more _collaborative-browser-editor
 
   A library that allows ajax-requests and handling responses.
  
-* BootstrapVue
+* [BootstrapVue](https://bootstrap-vue.js.org/)
+
+* [Froala WYSIWYG Editor](https://www.froala.com/wysiwyg-editor)
   
 ### Back-end
 
@@ -154,10 +156,10 @@ get _the date of the last version_ of the document specified with id;
 get a string that contains current active users' nicknames.
 
 Also there are two mappings that tune client-side periods of pushing and fetching:
-* `GET  /rest/push_interval`
+* `GET  /rest/config/push_interval`
 get push interval;
 
-* `GET  /rest/fetch_interval`
+* `GET  /rest/config/fetch_interval`
 get fetch interval.
 
 > Notice: that's prohibited for document version label to be `all` or 
