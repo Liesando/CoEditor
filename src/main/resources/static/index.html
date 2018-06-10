@@ -18,6 +18,18 @@
     <!-- BootstrapVue-->
     <script src="//unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
     <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+
+    <!-- Froala Editor -->
+    <!-- Include external CSS. -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet"
+          type="text/css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.0/codemirror.min.css">
+
+    <!-- Include Editor style. -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/2.8.1/css/froala_editor.pkgd.min.css"
+          rel="stylesheet" type="text/css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/2.8.1/css/froala_style.min.css" rel="stylesheet"
+          type="text/css"/>
 </head>
 <body>
 <div id="main" class="container-fluid" style="height: 100vh">
@@ -164,16 +176,14 @@
             </div>
 
             <!-- working field -->
-            <div class="row justify-content-center h-100">
+            <div class="row justify-content-center h-100 mt-1">
                 <div class="col-12">
 
-                    <template v-if="currentDocument">
+                    <!-- text area -->
+                    <editor :disabled="!currentDocument || processStatus == ProcessStatus.fetching || observingOldVersion"
+                            v-model="documentData"></editor>
 
-                        <!-- text area -->
-                        <textarea v-if="processStatus != ProcessStatus.fetching && !observingOldVersion"
-                                  class="form-control h-100"
-                                  v-model="documentData"></textarea>
-                        <textarea v-else disabled class="form-control h-100" v-model="documentData"></textarea>
+                    <template v-if="currentDocument">
 
                         <!-- status of changes -->
                         <div class="row justify-content-center">
@@ -207,14 +217,25 @@
                             </label>
                         </div>
                     </template>
-                    <textarea v-else disabled
-                              class="form-control h-100">select document to edit</textarea>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Include external JS libs. -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.0/codemirror.min.js"></script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.0/mode/xml/xml.min.js"></script>
+
+<!-- Include Editor JS files. -->
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/2.8.1/js/froala_editor.pkgd.min.js"></script>
+
+
+<script src="js/editor.js"></script>
 <script src="js/main.js"></script>
 
 </body>

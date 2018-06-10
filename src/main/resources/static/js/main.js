@@ -1,5 +1,5 @@
 ;
-new Vue({
+var vm = new Vue({
     el: "#main",
     data: {
         isPageLoading: true,
@@ -32,7 +32,8 @@ new Vue({
         ignoreWatchOnce: false,
         pushInterval: 3000,
         fetchInterval: 1000,
-        username: ""
+        username: "",
+        text: ""
     },
     computed: {},
     watch: {
@@ -49,6 +50,9 @@ new Vue({
         },
         errorMessage: function (newValue) {
             this.hasErrors = newValue.trim().length > 0;
+        },
+        text: function () {
+            console.log(this.text);
         }
     },
     methods: {
